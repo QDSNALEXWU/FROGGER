@@ -1,15 +1,3 @@
-//-------------------------------------------------------------------------
-//      lab7_usb.sv                                                      --
-//      Christine Chen                                                   --
-//      Fall 2014                                                        --
-//                                                                       --
-//      Fall 2014 Distribution                                           --
-//                                                                       --
-//      For use with ECE 385 Lab 7                                       --
-//      UIUC ECE Department                                              --
-//-------------------------------------------------------------------------
-
-
 module lab8( input               CLOCK_50,
              input        [3:0]  KEY,          //bit 0 is set up as Reset
              output logic [6:0]  HEX0, HEX1,
@@ -43,8 +31,8 @@ module lab8( input               CLOCK_50,
                                  DRAM_CLK      //SDRAM Clock
                     );
     
-    // self-delcrared varibales
-    // VARIABLES GROUP 1 
+    // ********* self-delcrared varibales **********************
+    // ********* VARIABLES GROUP 1 ***************************** 
     logic [0:5] colorcode;
     logic [0:15][0:16][0:5] frog_font ;
     logic [0:15][0:24][0:5] firetruck_font ;
@@ -56,7 +44,7 @@ module lab8( input               CLOCK_50,
     logic [0:15][0:7][0:5] heart_font ;
 
 
-    // VARIABLES GROUP 2     
+    // ********* VARIABLES GROUP 2 *****************************     
     logic Reset_h, Clk;
     logic [15:0] keycode;
     
@@ -92,7 +80,7 @@ module lab8( input               CLOCK_50,
     );
      
      //The connections for nios_system might be named different depending on how you set up Qsys
-     nios nios_system(
+     nios_system nios_system_unit(
                              .clk_clk(Clk),         
                              .reset_reset_n(KEY[0]),   
                              .sdram_wire_addr(DRAM_ADDR), 
@@ -115,20 +103,23 @@ module lab8( input               CLOCK_50,
     );
     
     //Fill in the connections for the rest of the modules 
-
+    
+	 // interaction with VGA 
     VGA_controller vga_controller_instance( .* , .Reset(Reset_h) );
-    ball ball_instance( .*, .Reset(~KEY[2]), .frame_clk(VGA_VS));  
-    fontawesome fontawesome_instance(.*);
-    frogger_game game_instance(.*);
-    color_mapper color_instance(.*);
+    
+	 // keyboard input handler  
+	 ball ball_instance( .*, .Reset(~KEY[2]), .frame_clk(VGA_VS));  
+    
+	 // store all the font we need 
+	 fontawesome fontawesome_instance(.*);
+    
+	 // game logic control unit 
+	 frogger_game game_instance(.*);
+    
+	 // map RGB value with color code 
+	 color_mapper color_instance(.*);
     
     HexDriver hex_inst_0 (keycode[3:0], HEX0);
     HexDriver hex_inst_1 (keycode[7:4], HEX1);
-    
-    /**************************************************************************************
-        ATTENTION! Please answer the following quesiton in your lab report! Points will be allocated for the answers!
-        Hidden Question #1/2:
-        What are the advantages and/or disadvantages of using a USB interface over PS/2 interface to
-             connect to the keyboard? List any two.  Give an answer in your Post-Lab.
-    **************************************************************************************/
+
 endmodule

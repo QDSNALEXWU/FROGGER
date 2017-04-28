@@ -34,7 +34,7 @@ always_comb
             end
         
         // #1 black  (0000) - 000001
-        else if ((value==6'b000001))
+        else if ((colorcode==6'b000001))
             begin
                 Red=8'h00;
                 Green=8'h00;
@@ -42,7 +42,7 @@ always_comb
             end
         
         // #2 green (27b212) - 000010    
-        else if ((value==6'b000010))
+        else if ((colorcode==6'b000010))
             begin
                 Red=8'h27;
                 Green=8'hb2;
@@ -50,7 +50,7 @@ always_comb
             end
 
         // #3 red (d80222) - 000011    
-        else if ((value==6'b000011))
+        else if ((colorcode==6'b000011))
             begin
                 Red=8'hd8;
                 Green=8'h02;
@@ -58,7 +58,7 @@ always_comb
             end  
             
         // #4  light blue (5db1f0) - 000100   
-        else if ((value==6'b000100))
+        else if ((colorcode==6'b000100))
             begin
                 Red=8'h5d;
                 Green=8'hb1;
@@ -66,7 +66,7 @@ always_comb
             end      
 
         //# 5 yellow (F1FF0A) - 000101    
-        else if ((value==6'b000101))
+        else if ((colorcode==6'b000101))
             begin
                 Red=8'hF1;
                 Green=8'hFF;
@@ -74,7 +74,7 @@ always_comb
             end     
 
         //# 6 grey (b2b2b0) - 000110      
-        else if ((value==6'b000110))
+        else if ((colorcode==6'b000110))
             begin
                 Red=8'hb2;
                 Green=8'hb2;
@@ -82,7 +82,7 @@ always_comb
             end 
 
         //# 7 orange (f27a00) - 000111     
-        else if ((value==6'b000111))
+        else if ((colorcode==6'b000111))
             begin
                 Red=8'hf2;
                 Green=8'h7a;
@@ -90,13 +90,19 @@ always_comb
             end      
 
         //# 8 brown (663300) - 001000    
-        else if ((value==6'b001000))
+        else if ((colorcode==6'b001000))
             begin
                 Red=8'h66;
                 Green=8'h33;
                 Blue=8'h00;
             end 
-
+		  // default grey_color 
+		  else 		
+				begin
+                Red=8'hb2;
+                Green=8'hb2;
+                Blue=8'hb0;
+            end 
 
     end
 endmodule

@@ -1,16 +1,16 @@
-module	frogger_game ( 	input [9:0] BallX, BallY, 
-									DrawX, DrawY, 
-									BallS
-						input logic [0:15][0:16][0:5] frog_font ;
-    					input logic [0:15][0:24][0:5] firetruck_font ;
-    					input logic [0:13][0:18][0:5] bus_font ;
-    					input logic [0:15][0:22][0:5] motorcycle_font ;
-    					input logic [0:8][0:26][0:5] shortlog_font ;
-    					input logic [0:8][0:49][0:5] mediumlog_font ;
-    					input logic [0:8][0:72][0:5] longlog_font ; 	
-						input Clk,
-						output [0:5] colorcode
-					);
+module	frogger_game ( input [9:0] BallX, BallY, 
+												DrawX, DrawY, 
+												BallS,
+								input logic [0:15][0:16][0:5] frog_font,
+								input logic [0:15][0:24][0:5] firetruck_font,
+								input logic [0:13][0:18][0:5] bus_font,
+								input logic [0:15][0:22][0:5] motorcycle_font,
+								input logic [0:8][0:26][0:5] shortlog_font,
+								input logic [0:8][0:49][0:5] mediumlog_font,
+								input logic [0:8][0:72][0:5] longlog_font,	
+								input Clk,
+								output [0:5] colorcode
+								);
 
 // try to match the color code with the actual RGB values 
 //color code match: 
@@ -43,13 +43,20 @@ parameter [9:0] shortlog_width=27;
 parameter [9:0] mediumlog_width=50;  
 parameter [9:0] longlog_width=73;  
 
+// draw things based on different conditions 
 always_comb
-	begin: decide color code 
-		if( ( DrawX >= BallX) &&  ( DrawX < BallX + frog_width) &&  (DrawY >= BallY ) && (DrawY < BallY + frog_height)  )
-			begin 	
-				colorcode = frog_font[DrawY-BallY][DrawX-BallX]		
-			end 
-		// TODO - add the background stuff		
+	begin
+				
+		if( DrawX >= BallX &&  DrawX < BallX + frog_width  && DrawY >= BallY && DrawY < BallY + frog_height )	
+				begin 
+					colorcode = frog_font[DrawY-BallY][DrawX-BallX]	;	
+				end
+		else 	
+				begin 
+					colorcode = 6'b000110 ; 
+				end 
 	end 
 
+	
+	
 endmodule

@@ -101,38 +101,37 @@ module  ball ( input         Reset,
 				end 
         else 
             begin 
-				case (keycode)
-                8'h001A : // W & UP    
+					case (keycode)
+						8'h001A : // W & UP    
 						  begin 	
 						  Ball_Y_Motion_in = (~ (Ball_Y_Step) + 1'b1); 
                     Ball_X_Motion_in = 10'b0;
 						  end	
-                8'h0004 : // A & LEFT 
+						8'h0004 : // A & LEFT 
                     begin 
 						  Ball_X_Motion_in = (~ (Ball_X_Step) + 1'b1); 
                     Ball_Y_Motion_in = 10'b0;
 						  end		
-                8'h0016 : // S & DOWN
+						8'h0016 : // S & DOWN
                     begin 
 						  Ball_Y_Motion_in = Ball_Y_Step ;//
                     Ball_X_Motion_in = 10'b0; 
 						  end 				
-                8'h0007 : // D & RIGHT
+						8'h0007 : // D & RIGHT
                     begin  
 						  Ball_X_Motion_in = Ball_X_Step;//
                     Ball_Y_Motion_in = 10'b0;
 						  end 	
-                default : 
+						default : 
 						  begin  
                     Ball_Y_Motion_in = Ball_Y_Motion ;
                     Ball_X_Motion_in = Ball_X_Motion;
 						  end 	
-				endcase
+					endcase
 				end 
-        // Update the ball's position with its motion
+        
+		  // Update the ball's position with its motion
         Ball_X_Pos_in = Ball_X_Pos + Ball_X_Motion;
         Ball_Y_Pos_in = Ball_Y_Pos + Ball_Y_Motion;
-         
-
-    
+	end 
 endmodule
