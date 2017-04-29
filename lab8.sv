@@ -42,7 +42,11 @@ module lab8( input               CLOCK_50,
     logic [0:8][0:49][0:5] mediumlog_font ;
     logic [0:8][0:72][0:5] longlog_font ; 
     logic [0:15][0:7][0:5] heart_font ;
-
+    logic [0:15][0:15][0:5] 1shell_font,
+    logic [0:15][0:15][0:5] 2shell_font,
+    logic [0:15][0:32][0:5] 3shell_font, 
+    logic [0:12][0:49][0:5] gator_font,
+    logic [0:26][0:23][0:5] vader_font 
 
     // ********* VARIABLES GROUP 2 *****************************     
     logic Reset_h, Clk;
@@ -102,10 +106,10 @@ module lab8( input               CLOCK_50,
                              .otg_hpi_w_export(hpi_w)
     );
     
-    //Fill in the connections for the rest of the modules 
+     //Fill in the connections for the rest of the modules 
     
 	 // interaction with VGA 
-    VGA_controller vga_controller_instance( .* , .Reset(Reset_h) );
+     VGA_controller vga_controller_instance( .* , .Reset(Reset_h) );
     
 	 // keyboard input handler  
 	 ball ball_instance( .*, .Reset(~KEY[2]), .frame_clk(VGA_VS));  
@@ -119,7 +123,7 @@ module lab8( input               CLOCK_50,
 	 // map RGB value with color code 
 	 color_mapper color_instance(.*);
     
-    HexDriver hex_inst_0 (keycode[3:0], HEX0);
-    HexDriver hex_inst_1 (keycode[7:4], HEX1);
+     HexDriver hex_inst_0 (keycode[3:0], HEX0);
+     HexDriver hex_inst_1 (keycode[7:4], HEX1);
 
 endmodule
