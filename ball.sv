@@ -36,7 +36,7 @@ module  ball ( input         Reset,
     logic [9:0] Ball_X_Pos_in, Ball_X_Motion_in, Ball_Y_Pos_in, Ball_Y_Motion_in;
      
     parameter [9:0] Ball_X_Center=320;  // Center position on the X axis
-    parameter [9:0] Ball_Y_Center=240;  // Center position on the Y axis
+    parameter [9:0] Ball_Y_Center=435;  // Center position on the Y axis
     parameter [9:0] Ball_X_Min=0;       // Leftmost point on the X axis
     parameter [9:0] Ball_X_Max=639;     // Rightmost point on the X axis
     parameter [9:0] Ball_Y_Min=0;       // Topmost point on the Y axis
@@ -123,9 +123,11 @@ module  ball ( input         Reset,
                     Ball_Y_Motion_in = 10'b0;
 						  end 	
 						default : 
-						  begin  
-                    Ball_Y_Motion_in = Ball_Y_Motion ;
-                    Ball_X_Motion_in = Ball_X_Motion;
+						  begin      
+						  //Ball_Y_Motion_in = Ball_Y_Motion ;
+                    //Ball_X_Motion_in = Ball_X_Motion;
+						  Ball_Y_Motion_in = 10'b0 ;
+                    Ball_X_Motion_in = 10'b0 ;
 						  end 	
 					endcase
 				end 

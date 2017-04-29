@@ -5,8 +5,8 @@ module  color_mapper ( input [0:5] colorcode,
 
 // try to match the color code with the actual RGB values 
 //color code match: 
-//# 0 white  (fffff)
-//# 1 black  (0000)
+//# 0 transparent 
+//# 1 black  (000000)
 //# 2 green (27b212)
 //# 3 red (d80222)
 //# 4 light blue (5db1f0)
@@ -16,6 +16,7 @@ module  color_mapper ( input [0:5] colorcode,
 //# 8 brown (663300)
 //# 9 purple (8600b3)
 //# 10 dark_blue (000066)
+//# 11 white (ffffff) 
 
 logic [7:0] Red, Green, Blue;
 assign VGA_R = Red;
@@ -29,10 +30,10 @@ always_comb
         // #0 white  (fffff) - 000000 
         if ((colorcode==6'b000000))
             begin
-                Red=8'hff;
-                Green=8'hff;
-                Blue=8'hff;
-            end
+					 Red=8'h00;
+                Green=8'h00;
+                Blue=8'h00;
+				end
         
         // #1 black  (0000) - 000001
         else if ((colorcode==6'b000001))
@@ -113,6 +114,15 @@ always_comb
                 Green=8'h00;
                 Blue=8'h66;
             end  	
+		  
+		  //# 11 white (ffffff) - 001011
+		  else if ((colorcode==6'b001011))
+            begin
+                Red=8'hff;
+                Green=8'hff;
+                Blue=8'hff;
+            end  
+		   
 		  // default grey_color 
 		  else 		
 				begin
