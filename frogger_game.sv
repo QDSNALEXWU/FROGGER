@@ -25,6 +25,9 @@ module	frogger_game ( input [9:0] BallX, BallY,
 //# 8 brown (663300)
 //# 9 purple (8600b3)
 //# 10 dark_blue (000066)
+//# 11 white (ffff)
+//# 12 light green (70f248)
+
 
 //  the window is 640 wide , 480 height
 // ********** group 1 - const variables  *********** 
@@ -77,13 +80,13 @@ always_comb
 				end	
 		
 		//*********** draw the bus ****************** 
-		else if( DrawX >= busX &&  DrawX < busX + bus_width && DrawY >= busY && DrawY < busY + bus_height )	
+		else if( DrawX >= busX &&  DrawX < busX + bus_width && DrawY >= busY && DrawY < busY + bus_height  && bus_font[DrawY-busY][DrawX-busX] != 6'b000000  )	
 				begin 
 					colorcode = bus_font[DrawY-busY][DrawX-busX]	;	
 				end	
 		
 		//*********** draw the motorcycle ****************** 
-		else if( DrawX >= motorcycleX &&  DrawX < motorcycleX + motorcycle_width && DrawY >= motorcycleY && DrawY < motorcycleY + motorcycle_height )	
+		else if( DrawX >= motorcycleX &&  DrawX < motorcycleX + motorcycle_width && DrawY >= motorcycleY && DrawY < motorcycleY + motorcycle_height && motorcycle_font[DrawY-motorcycleY][DrawX-motorcycleX] != 6'b000000  )	
 				begin 
 					colorcode = motorcycle_font[DrawY-motorcycleY][DrawX-motorcycleX]	;	
 				end	
@@ -105,49 +108,7 @@ always_comb
 				begin 	
 					 colorcode = 6'b000010 ;			
 				end 
-		
-	
-		 // draw the white marks lines on the road 
-		 /*
-		 else if ( (( DrawX >= 0 ) && ( DrawX <= 64 )) ||  ( (DrawX >= 128) && (DrawX <=192)) || ( (DrawX >= 256) && (DrawX <=320))  ||  ( (DrawX >= 384) && (DrawX <=448))  ||  ( (DrawX >= 512) && (DrawX <=576))	) 	 
-				 if ((( DrawY >= 306 ) && ( DrawY <= 308 )) || (( DrawY >= 346 ) && ( DrawY <= 348 )) || (( DrawY >= 388 ) && ( DrawY <= 390 ))   )
-					begin 
-						// draw the white line 
-						ball_on = 1'b0;
-						purple_line_on = 1'b0;
-						grass_on = 1'b0 ;
-						water_on = 1'b0 ;
-						font_on = 1'b0;
-						sprite_addr = 10'b0; 
-						line_on = 1'b1 ; 
-						time_bar_on = 1'b0;	
-					end 
-				 else if (DrawX >= 240) 	
-					begin 	
-						// background color 
-						ball_on = 1'b0;
-						purple_line_on = 1'b0;
-						grass_on = 1'b0 ;
-						water_on = 1'b0 ;
-						font_on = 1'b0;
-						sprite_addr = 10'b0 ;
-						line_on = 1'b0 ;
-					   time_bar_on = 1'b0;		
-					end 
-				 else 	
-						// water color 
-					begin 
-						ball_on = 1'b0;
-						purple_line_on = 1'b0;
-						grass_on = 1'b0 ; 
-						water_on = 1'b1 ;
-						font_on = 1'b0;
-						sprite_addr = 10'b0 ; 
-						line_on = 1'b0 ;	
-						time_bar_on = 1'b0;	
-					end 
-			*/
-		
+			
 		  //********** draw the top part green grass  ********************* 	
 		 else if ( (( DrawY >= 50 ) && ( DrawY <= 100 )) )	
 				if (DrawY >= 60)
