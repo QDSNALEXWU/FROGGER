@@ -18,7 +18,7 @@ module  color_mapper ( input [0:5] colorcode,
 //# 10 dark_blue (000066)
 //# 11 white (ffffff) 
 //# 12 light green (70f248)
-//# 13 dark grey 
+//# 13 dark grey (404040)
 
 
 
@@ -136,8 +136,16 @@ always_comb
                 Blue=8'h48;
             end  
 
-		  // default dark grey color 
-		  else 		
+			//# 13 dark grey (404040) - 001101	
+			else if ((colorcode==6'b001101))
+            begin
+                Red=8'h40;
+                Green=8'h40;
+                Blue=8'h40;
+            end  
+					
+			// default dark grey color 
+		   else 		
 				begin
                 Red=8'h40;
                 Green=8'h40;

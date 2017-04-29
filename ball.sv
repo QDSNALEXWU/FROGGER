@@ -36,14 +36,14 @@ module  ball ( input         Reset,
     logic [9:0] Ball_X_Pos_in, Ball_X_Motion_in, Ball_Y_Pos_in, Ball_Y_Motion_in;
      
     parameter [9:0] Ball_X_Center=320;  // Center position on the X axis
-    parameter [9:0] Ball_Y_Center=435;  // Center position on the Y axis
+    parameter [9:0] Ball_Y_Center=429;  // Center position on the Y axis
     parameter [9:0] Ball_X_Min=0;       // Leftmost point on the X axis
     parameter [9:0] Ball_X_Max=639;     // Rightmost point on the X axis
-    parameter [9:0] Ball_Y_Min=0;       // Topmost point on the Y axis
-    parameter [9:0] Ball_Y_Max=479;     // Bottommost point on the Y axis
-    parameter [9:0] Ball_X_Step=1;      // Step size on the X axis
-    parameter [9:0] Ball_Y_Step=1;      // Step size on the Y axis
-    parameter [9:0] Ball_Size=4;        // Ball size
+    parameter [9:0] Ball_Y_Min=50;       // Topmost point on the Y axis
+    parameter [9:0] Ball_Y_Max=438;     // Bottommost point on the Y axis
+    parameter [9:0] Ball_X_Step=18;      // Step size on the X axis
+    parameter [9:0] Ball_Y_Step=18;      // Step size on the Y axis
+    parameter [9:0] Ball_Size=9;        // Ball size
     
     assign BallX = Ball_X_Pos;
     assign BallY = Ball_Y_Pos;
@@ -121,13 +121,18 @@ module  ball ( input         Reset,
                     begin  
 						  Ball_X_Motion_in = Ball_X_Step;//
                     Ball_Y_Motion_in = 10'b0;
+						  end 		   
+						// doesn't move when we change somehting here 
+						8'h0000 :
+                    begin  
+						  Ball_X_Motion_in = 10'b0;
+                    Ball_Y_Motion_in = 10'b0;
 						  end 	
+						
 						default : 
 						  begin      
-						  //Ball_Y_Motion_in = Ball_Y_Motion ;
-                    //Ball_X_Motion_in = Ball_X_Motion;
-						  Ball_Y_Motion_in = 10'b0 ;
-                    Ball_X_Motion_in = 10'b0 ;
+						  Ball_Y_Motion_in = Ball_Y_Motion ;
+                    Ball_X_Motion_in = Ball_X_Motion;
 						  end 	
 					endcase
 				end 

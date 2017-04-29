@@ -42,13 +42,16 @@ module lab8( input               CLOCK_50,
     logic [0:8][0:49][0:5] mediumlog_font ;
     logic [0:8][0:72][0:5] longlog_font ; 
     logic [0:15][0:7][0:5] heart_font ;
-    logic [0:15][0:15][0:5] 1shell_font,
-    logic [0:15][0:15][0:5] 2shell_font,
-    logic [0:15][0:32][0:5] 3shell_font, 
-    logic [0:12][0:49][0:5] gator_font,
-    logic [0:26][0:23][0:5] vader_font 
-
-    // ********* VARIABLES GROUP 2 *****************************     
+    logic [0:15][0:15][0:5] Oneshell_font ;
+    logic [0:15][0:32][0:5] Twoshell_font ;
+    logic [0:15][0:49][0:5] Threeshell_font ; 
+    logic [0:12][0:26][0:5] gator_font ;
+    logic [0:23][0:26][0:5] vader_font ; 
+    logic [0:11][0:27][0:5] policecar_font ;
+	 logic [0:13][0:24][0:5] truck_font ;   	
+    logic [0:17][0:22][0:5] skull_font ;
+    
+	 // ********* VARIABLES GROUP 2 *****************************     
     logic Reset_h, Clk;
     logic [15:0] keycode;
     
