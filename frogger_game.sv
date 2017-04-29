@@ -8,6 +8,11 @@ module	frogger_game ( input [9:0] BallX, BallY,
 								input logic [0:8][0:26][0:5] shortlog_font,
 								input logic [0:8][0:49][0:5] mediumlog_font,
 								input logic [0:8][0:72][0:5] longlog_font,	
+								input logic [0:15][0:15][0:5] 1shell_font,
+                   				input logic [0:15][0:15][0:5] 2shell_font,
+                   				input logic [0:15][0:32][0:5] 3shell_font, 
+                   				input logic [0:12][0:49][0:5] gator_font,
+                   				input logic [0:26][0:23][0:5] vader_font, 
 								input Clk,
 								output [0:5] colorcode
 								);
