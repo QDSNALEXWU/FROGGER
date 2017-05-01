@@ -165,8 +165,6 @@ parameter [9:0] threeshell_width = 50;
 parameter [9:0] threeshell_height = 16; 
 
 
-parameter [9:0] vader_width = 24;  
-parameter [9:0] vader_height = 27; 
 
 // *********************  ROW 1 ********************************* // 
 int threeshellX = 390; 
@@ -185,6 +183,20 @@ int longlogY = 150;
 int gatorX = 440; 
 int gatorY = 180;   
 
+
+
+// *********************  ROW 3 ********************************* // 
+
+
+
+
+
+
+
+
+
+
+
 // *********************  score ********************************* //
 // 3210
 logic digit0 [0:13][0:13][0:5] ;
@@ -202,6 +214,21 @@ int Digit1x = 180 ;
 int Digit2x = 210 ; 
 int Digit3x = 240 ; 
 int Digit4x = 270 ;
+
+
+
+
+
+parameter [9:0] vader_width = 27;  
+parameter [9:0] vader_height = 24; 
+int vaderY = 30 ; 
+int vader1x = 180 ; 
+int vader2x = 210 ; 
+int vader3x = 240 ; 
+int vader4x = 270 ;
+int vader5x = 270 ;
+
+
 
 //#########################################################################################
 // *****************************************************************************
@@ -455,16 +482,33 @@ always_comb
 		 else if ( DrawX >= heart3X && DrawX <  heart2X + heart_width && DrawY >= heartY && DrawY < heartY + heart_height && heart_font[DrawY-heartY][DrawX-heart3X] != 6'b000000   ) 
 				begin 	
 					 colorcode = heart_font[DrawY-heartY][DrawX-heart3X]  ;			
-				end 
-	
 		 
-		 //********** draw the top part green grass  ********************* 	
+		 //********** draw the top part green grass and 5 vaders ********************* 	
 		 else if ( (( DrawY >= 50 ) && ( DrawY <= 100 )) )	
 				if (DrawY >= 60)
 						// water 
 						if ( (( DrawX >= 50 ) && ( DrawX <= 110 )) ||  ( (DrawX >= 170) && (DrawX <=230)) || ( (DrawX >= 290) && (DrawX <=350))  ||  ( (DrawX >= 410) && (DrawX <=470))  ||  ( (DrawX >= 530) && (DrawX <=590))	) 
 							begin 
-								colorcode = 6'b001010 ;
+								
+								//draw the 5 vaders ( 27 wide , 24 high ) 
+								int vaderY = 30 ; 
+int vader1x = 180 ; 
+int vader2x = 210 ; 
+int vader3x = 240 ; 
+int vader4x = 270 ;
+int vader5x = 270 ;	
+
+								if
+
+
+								else 			
+									begin 
+									colorcode = 6'b001010 ;
+									end 
+
+
+
+
 							end 
 						// grass 
 						else 
