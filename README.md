@@ -1,9 +1,10 @@
 # FROGGER GAME FOR ECE 385 FINAL PROJECT 
 ## TO DO 
 * Car Animation 
-* Log, turtle , gator Display  
+* Water Animation 
 * Collision Detection 
-* Score Couunting 
+* Score Counting
 * Vador Display  
 * Dead Animation 
-* Start, End game display 
+* Start- End game display 
+
