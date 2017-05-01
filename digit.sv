@@ -1,7 +1,7 @@
 module digitfont( input logic Clk,
-               	    // from right to left
-               	    input logic digit,  	
-					output logic [0:13][0:13][0:5] font 
+               	// from right to left
+               	input logic [0:3] digit,  	
+						output logic [0:13][0:13][0:5] font 
 				  );
 
 
@@ -103,7 +103,7 @@ begin
 	 '{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0 },
 	 '{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0 },
 	 '{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0 },
-	 '{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0 },
+	 '{ 0, 0, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2, 0, 0 }
 	};
 
 
@@ -121,7 +121,7 @@ begin
 	 '{ 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2 }, 
 	 '{ 2, 2, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 2 }, 
 	 '{ 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0 },
-	 '{ 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0 },
+	 '{ 0, 0, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 0, 0 }
 	};
 
 
@@ -199,52 +199,52 @@ end
 always_comb
 begin
 	case (digit)
-		0 : 
+		3'b0000 : 
 			begin 	
 				font = zero_font ; 
 			end	
 		
-		1 : 
+		3'b0001 : 
 			begin 	
 				font = one_font ; 
 			end	
 
-		2 : 
+		3'b0010 : 
 			begin 	
 				font = two_font ; 
 			end	
 
-		3 : 
+		3'b0011  : 
 			begin 	
 				font = three_font ; 
 			end		
 
-		4 : 
+		3'b0100 : 
 			begin 	
 				font = four_font ; 
 			end		
 
-		5 : 
+		3'b0101 : 
 			begin 	
 				font = five_font ; 
 			end	
 
-		6 : 
+		3'b0110 : 
 			begin 	
 				font = six_font ; 
 			end
 
-		7 : 
+		3'b0111 : 
 			begin 	
 				font = seven_font ; 
 			end		
 
-		8 : 
+		3'b1000: 
 			begin 	
 				font = eight_font ; 
 			end	
 		
-		9 : 
+		3'b1001 : 
 			begin 	
 				font = nine_font ; 
 			end	
@@ -263,7 +263,3 @@ end
 endmodule
 
 
-
-
-
-endmodule 

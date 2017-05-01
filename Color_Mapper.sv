@@ -144,8 +144,8 @@ always_comb
                 Blue=8'h40;
             end  
 			
-            //# 14 light brown (ffa64d)
-            else if (colorcode==6'b001110))
+          //# 14 light brown (ffa64d)
+         else if (colorcode==6'b001110)
             begin 
                 Red=8'h00;
                 Green=8'h11;

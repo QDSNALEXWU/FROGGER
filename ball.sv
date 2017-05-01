@@ -33,14 +33,14 @@ module  ball ( input         Reset,
     logic [9:0] Ball_X_Pos_in, Ball_X_Motion_in, Ball_Y_Pos_in, Ball_Y_Motion_in;
      
     parameter [9:0] Ball_X_Center=320;  // Center position on the X axis
-    parameter [9:0] Ball_Y_Center=429;  // Center position on the Y axis
+    parameter [9:0] Ball_Y_Center=430;  // Center position on the Y axis
     parameter [9:0] Ball_X_Min=0;       // Leftmost point on the X axis
     parameter [9:0] Ball_X_Max=639;     // Rightmost point on the X axis
     parameter [9:0] Ball_Y_Min=50;       // Topmost point on the Y axis
     parameter [9:0] Ball_Y_Max=438;     // Bottommost point on the Y axis
-    parameter [9:0] Ball_X_Step=18;      // Step size on the X axis
-    parameter [9:0] Ball_Y_Step=18;      // Step size on the Y axis
-    parameter [9:0] Ball_Size=9;        // Ball size
+    parameter [9:0] Ball_X_Step=3;      // Step size on the X axis
+    parameter [9:0] Ball_Y_Step=4;      // Step size on the Y axis
+    parameter [9:0] Ball_Size=8;        // Ball size
     
     assign BallX = Ball_X_Pos;
     assign BallY = Ball_Y_Pos;
@@ -78,22 +78,26 @@ module  ball ( input         Reset,
                     
         if( Ball_Y_Pos + Ball_Size >= Ball_Y_Max )  // Ball is at the bottom edge, BOUNCE!
 			   begin 		
-					Ball_Y_Motion_in = (~(Ball_Y_Step) + 1'b1);  // 2's complement.  
+					//Ball_Y_Motion_in = (~(Ball_Y_Step) + 1'b1);  // 2's complement.  
+					Ball_Y_Motion_in = 10'b0 ;
 					Ball_X_Motion_in = 10'b0 ;
 				end 
         else if ( Ball_Y_Pos <= Ball_Y_Min + Ball_Size )  // Ball is at the top edge, BOUNCE!
             begin 
-					Ball_Y_Motion_in = Ball_Y_Step;
+					//Ball_Y_Motion_in = Ball_Y_Step;
+					Ball_Y_Motion_in = 10'b0 ;
 					Ball_X_Motion_in = 10'b0 ;
 				end 
         else if ( (Ball_X_Pos + Ball_Size) >= Ball_X_Max )  // Ball is at the right edge, BOUNCE!
             begin
-					Ball_X_Motion_in = (~ (Ball_X_Step) + 1'b1);  
+					//Ball_X_Motion_in = (~ (Ball_X_Step) + 1'b1);  
+					Ball_X_Motion_in = 10'b0 ;
 					Ball_Y_Motion_in = 10'b0;
             end 
         else if ( (Ball_X_Pos - Ball_Size) <= Ball_X_Min )  // Ball is at the left edge, BOUNCE!
             begin 
-					Ball_X_Motion_in = Ball_X_Step;
+					//Ball_X_Motion_in = Ball_X_Step;
+					Ball_X_Motion_in = 10'b0 ;
 					Ball_Y_Motion_in = 10'b0;
 				end 
         else 
