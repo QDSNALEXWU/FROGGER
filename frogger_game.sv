@@ -58,7 +58,7 @@ parameter [9:0] frog_height=16;
 
 
 
-/////////////////// firetruck - right to left /////////////////////////////////  
+/////////////////// firetruck - right to left ///////////////////////////////// ROW1  
 parameter [9:0] firetruck_width=25;  
 parameter [9:0] firetruck_height=16;  
 int firetruckY = 270; 
@@ -69,7 +69,7 @@ int firetruckX = 440;
 
 
 
-///////////////////// bus - left to right(flip) ///////////////////////////////
+///////////////////// bus - left to right(flip) /////////////////////////////// ROW2
 parameter [9:0] bus_width=19;  
 parameter [9:0] bus_height=14;  
 int busY = 300; 
@@ -81,7 +81,7 @@ int busX= 440;
 
 
 
-///////////////////// motorcycle - right to left ///////////////////////////////
+///////////////////// motorcycle - right to left /////////////////////////////// ROW3
 parameter [9:0] motorcycle_width=23;  
 parameter [9:0] motorcycle_height=16;  
 int motorcycleY = 330; 
@@ -92,7 +92,7 @@ int motorcycleX = 440;
 
 
 
-/////////////////// policecar - left to right(flip) /////////////////////////////////
+/////////////////// policecar - left to right(flip) ////////////////////////////// ROW4
 parameter [9:0] policecar_width=28;  
 parameter [9:0] policecar_height=12;  
 int policecarY = 360;  
@@ -103,7 +103,7 @@ int policecarX = 440;
 
 
 
-////////////////////// truck - right to left //////////////////////////////
+////////////////////// truck - right to left ///////////////////////////////////// ROW5
 parameter [9:0] truck_width=25;  
 parameter [9:0] truck_height=14;  
 int truckX = 440; 
@@ -113,7 +113,7 @@ int truckY = 390;
 
 
 
-////////////////////// heart //////////////////////////////
+////////////////////// heart /////////////////////////////////////////////////////
 parameter [9:0] heart_width=14;  
 parameter [9:0] heart_height=12;  
 
@@ -180,23 +180,31 @@ parameter [9:0] vader_width = 24;
 parameter [9:0] vader_height = 27; 
 
 
-// ************ group 2 - varibles that will change values based on clock cycles ******* 
-int time_width = 200 ;
-always_ff @ (posedge Clk)
-	begin
-		time_width = time_width - 1 ;
+//#########################################################################################
+// *****************************************************************************
+// ****************************  collision detection ***************************
+// ****************************************************************************	
+always_ff@(posedge Clk)
+begin
 
-	end 
 
-// **********************************************************************
-// ********** now we begain to draw different things  *********** 
-// draw things based on different conditions 
+
+end
+
+
+
+
+
+
+//#########################################################################################
+// *****************************************************************************
+// ****************************  draw things **********************************
+// ****************************************************************************	
 always_comb
 	begin
 		
 		// decrease time 
-		//time_width = time_width - 2 ; 
-	   
+   
 		
 		//*********** draw the frog  ****************** 
 		if( DrawX >= BallX &&  DrawX < BallX + frog_width  && DrawY >= BallY && DrawY < BallY + frog_height && frog_font[DrawY-BallY][DrawX-BallX] != 6'b000000  )	
@@ -442,6 +450,32 @@ always_comb
 					colorcode = 6'b001101 ; 
 				end 
 	end 
+
+//#########################################################################################
+// ****************************************************************************
+// **************************** Animation *************************************
+// ****************************************************************************	
+
+logic clk_1Hz ;
+int time_width = 180 ; 
+
+SlowClock clock_generator(.*);
+
+// 1s clock cycle
+always_ff@(posedge clk_1Hz)
+begin
+	time_width <= counter - 1 ;
+	if( time_width == 0 ) 
+		begin 
+			time_width <= 200 ;
+		end  
+
+
+end
+
+
+
+
 
 	
 	
