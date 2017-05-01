@@ -20,8 +20,6 @@ module  ball ( input         Reset,
 					output [9:0]  BallX, BallY, BallS // Ball coordinates and size
               );
     
-
-
     // W  8'h001A
     // A  8'h0004
     // S  8'h0016
@@ -30,7 +28,6 @@ module  ball ( input         Reset,
     // LEFT 8'h6b
     // RIGHT 8'h74
     // DOWN 8'h72  
-
 
     logic [9:0] Ball_X_Pos, Ball_X_Motion, Ball_Y_Pos, Ball_Y_Motion;
     logic [9:0] Ball_X_Pos_in, Ball_X_Motion_in, Ball_Y_Pos_in, Ball_Y_Motion_in;
@@ -137,7 +134,7 @@ module  ball ( input         Reset,
 					endcase
 				end 
         
-		  // Update the ball's position with its motion
+		// Update the ball's position with its motion
         Ball_X_Pos_in = Ball_X_Pos + Ball_X_Motion;
         Ball_Y_Pos_in = Ball_Y_Pos + Ball_Y_Motion;
 	end 

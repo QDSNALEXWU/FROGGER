@@ -1,12 +1,8 @@
-
-module  color_mapper ( input [0:5] colorcode,
-                       output logic [7:0]  VGA_R, VGA_G, VGA_B );
-
-
-// try to match the color code with the actual RGB values 
+//********************************************************
+//try to match the color code with the actual RGB values 
 //color code match: 
-//# 0 transparent 
-//# 1 black  (000000)
+//# 0 white  (fffff)
+//# 1 black  (0000)
 //# 2 green (27b212)
 //# 3 red (d80222)
 //# 4 light blue (5db1f0)
@@ -16,9 +12,13 @@ module  color_mapper ( input [0:5] colorcode,
 //# 8 brown (663300)
 //# 9 purple (8600b3)
 //# 10 dark_blue (000066)
-//# 11 white (ffffff) 
+//# 11 white (ffff)
 //# 12 light green (70f248)
 //# 13 dark grey (404040)
+//# 14 light brown (ffa64d)
+//**********************************************
+module  color_mapper ( input [0:5] colorcode,
+                       output logic [7:0]  VGA_R, VGA_G, VGA_B );
 
 
 
@@ -143,7 +143,15 @@ always_comb
                 Green=8'h40;
                 Blue=8'h40;
             end  
-					
+			
+            //# 14 light brown (ffa64d)
+            else if (colorcode==6'b001110))
+            begin 
+                Red=8'h00;
+                Green=8'h11;
+                Blue=8'h10;
+            end 
+
 			// default dark grey color 
 		   else 		
 				begin
