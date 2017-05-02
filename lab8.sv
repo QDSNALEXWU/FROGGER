@@ -48,7 +48,7 @@ module lab8( input               CLOCK_50,
     logic [0:12][0:26][0:5] gator_font ;
     logic [0:23][0:26][0:5] vader_font ; 
     logic [0:11][0:27][0:5] policecar_font ;
-	logic [0:13][0:24][0:5] truck_font ;   	
+	 logic [0:13][0:24][0:5] truck_font ;   	
     logic [0:17][0:22][0:5] skull_font ;
     logic [0:13][0:13][0:5] S_font ;  
     logic [0:13][0:13][0:5] C_font ;  
@@ -61,7 +61,7 @@ module lab8( input               CLOCK_50,
     logic [3:0]  ten ;  
     logic [3:0]  hundred ;
     logic [3:0]  thousand ; 
-
+	 logic [2:0]  lives ;
     
 	 // ********* VARIABLES GROUP 2 *****************************     
     logic Reset_h, Clk;
@@ -73,9 +73,8 @@ module lab8( input               CLOCK_50,
     logic [1:0] hpi_addr;
     logic [15:0] hpi_data_in, hpi_data_out;
     logic hpi_r, hpi_w,hpi_cs;
-    
-
-
+    logic collision ;
+	      
     // Self Declared Variables
     logic [9:0] DrawX,DrawY,BallX,BallY,BallS;
 

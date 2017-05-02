@@ -18,9 +18,9 @@
 //# 14 light brown (ffa64d)
 //**********************************************
 module	frogger_game ( input [9:0] BallX, BallY, 
-								   DrawX, DrawY, 
-								   BallS,
-					   			input logic [0:15][0:16][0:5] frog_font,
+								DrawX, DrawY, 
+								BallS,
+					   		input logic [0:15][0:16][0:5] frog_font,
 								input logic [0:15][0:24][0:5] firetruck_font,
 								input logic [0:13][0:18][0:5] bus_font,
 								input logic [0:15][0:22][0:5] motorcycle_font,
@@ -28,13 +28,13 @@ module	frogger_game ( input [9:0] BallX, BallY,
 								input logic [0:15][0:49][0:5] mediumlog_font,
 								input logic [0:15][0:72][0:5] longlog_font,	
 								input logic [0:15][0:15][0:5] Oneshell_font,
-                   				input logic [0:15][0:32][0:5] Twoshell_font,
-                   				input logic [0:15][0:49][0:5] Threeshell_font, 
-                   				input logic [0:12][0:26][0:5] gator_font,
-                   				input logic [0:23][0:26][0:5] vader_font, 
+                   		input logic [0:15][0:32][0:5] Twoshell_font,
+                   		input logic [0:15][0:49][0:5] Threeshell_font, 
+                   		input logic [0:12][0:26][0:5] gator_font,
+                   		input logic [0:23][0:26][0:5] vader_font, 
 								input logic [0:11][0:27][0:5] policecar_font,
 								input logic [0:11][0:13][0:5] heart_font, 	
-							   	input logic [0:13][0:24][0:5] truck_font,   	
+							   input logic [0:13][0:24][0:5] truck_font,   	
 								input logic [0:17][0:22][0:5] skull_font,
 								input logic [0:13][0:13][0:5] S_font,  
     							input logic [0:13][0:13][0:5] C_font,  
@@ -44,11 +44,13 @@ module	frogger_game ( input [9:0] BallX, BallY,
     							input logic [0:13][0:13][0:5] T_font, 
     							input logic [0:13][0:13][0:5] I_font,
     							input logic [0:13][0:13][0:5] M_font,  
-								input logic [3:0]  ten,
-               					input logic [3:0]  hundred,
-                				input logic [3:0]  thousand  
+								input logic [3:0] ten,
+               			input logic [3:0] hundred,
+                			input logic [3:0] thousand,  
+								input logic [2:0] lives,
 								input Clk,
-								output [0:5] colorcode
+								output [0:5] colorcode,
+								output collision 
 								);
 
 //  the window is 640 wide , 480 height
@@ -66,8 +68,7 @@ int busY = 323;
 int motorcycleY = 302;
 int policecarY = 284;  
 int truckY = 263; 
-
-
+int hearts_count = 3 ;
 
 // ****************************** ROW1 ***************************************
 /////////////////// firetruck - right to left /////////////////////////////////   
@@ -112,13 +113,11 @@ parameter [9:0] policecar_width=28;
 parameter [9:0] policecar_height=12;  
 //int policecarY = 360;  
 int policecar1X = 440; 
-int policecar2X = 440;
-int policecar3X = 440;
-int policecar4X = 440;
-int policecar5X = 440;
+int policecar2X = 60;
+int policecar3X = 380;
+int policecar4X = 600;
+int policecar5X = 560;
  
-
-
 // ****************************** ROW5 ***************************************
 ////////////////////// truck - right to left ///////////////////////////////////// ROW5
 parameter [9:0] truck_width=25;  
@@ -136,10 +135,10 @@ int truck5X = 90;
 parameter [9:0] heart_width=14;  
 parameter [9:0] heart_height=12;  
 
-int heartY = 455 ; 
-int heart1X = 30 ; 
-int heart2X = 50 ; 
-int heart3X = 70 ; 
+int heartY = 400 ; 
+int heart1X = 100 ; 
+int heart2X = 120 ; 
+int heart3X = 140 ; 
 
 
 /////////////////// text font ////////////////////
@@ -147,7 +146,7 @@ int heart3X = 70 ;
 parameter [9:0] text_width=14;  
 parameter [9:0] text_height=14;  
 
-int TimeY = 420 ; 
+int TimeY = 400 ; 
 int Time1X = 330 ; 
 int Time2X = 350 ; 
 int Time3X = 370 ; 
@@ -188,7 +187,7 @@ parameter [9:0] threeshell_height = 16;
 
 // *********************  ROW 1 ********************************* // 
 int row1Y = 162 ;		
-int row1gator = 100 ;
+int row1gator = 20 ;
 int row1longlog = 120 ;
 int row1shortlog = 300 ;
 int row1mediumlog = 360 ;
@@ -198,30 +197,30 @@ int row1threeshell = 442 ;
 // *********************  ROW 2 ********************************* // 
 int row2Y = 182 ;   
 int row2gator = 188 ;
-int row2longlog = 438 ;
+int row2longlog = 310 ;
 int row2shortlog = 60 ;
 int row2mediumlog = 498 ;
 int row2twoshell = 136 ;
-int row2threeshell = 310 ;
+int row2threeshell = 250 ;
 
 // *********************  ROW 3 ********************************* // 
 int row3Y = 202 ;
-int row3gator = 188 ;
-int row3longlog = 438 ;
-int row3shortlog = 60 ;
+int row3gator = 410;
+int row3longlog = 10 ;
+int row3shortlog = 120 ;
 int row3mediumlog = 498 ;
-int row3twoshell = 136 ;
+int row3twoshell = 188 ;
 int row3threeshell = 310 ;
 
 
 // *********************  ROW 4 ********************************* // 
-int row4Y = 232 ;
+int row4Y = 222 ;
 int row4gator = 38 ;
 int row4longlog = 128 ;
-int row4shortlog = 222 ;
+int row4shortlog = 250 ;
 int row4mediumlog = 323 ;
 int row4twoshell = 502 ;
-int row4threeshell = 398 ;
+int row4threeshell = 410 ;
 
 // *********************  score ********************************* //
 // 3210
@@ -230,10 +229,10 @@ logic [0:13][0:13][0:5] digit1 ;
 logic [0:13][0:13][0:5] digit2 ;
 logic [0:13][0:13][0:5] digit3 ;
 
-digitfont digit_instace1 ( .Clk, .digit(ten), .font(digit0)); 
-digitfont digit_instace2 ( .Clk, .digit(hundred), .font(digit1)); 
-digitfont digit_instace3 ( .Clk, .digit(thousand), .font(digit2)); 
-digitfont digit_instace4 ( .Clk, .digit(4'b0000), .font(digit3)); 
+digitfont digit_instace1 ( .Clk, .digit(4'b0000), .font(digit0)); 
+digitfont digit_instace2 ( .Clk, .digit(thousand), .font(digit1)); 
+digitfont digit_instace3 ( .Clk, .digit(hundred), .font(digit2)); 
+digitfont digit_instace4 ( .Clk, .digit(ten), .font(digit3)); 
 
 int DigitY = 80 ; 
 int Digit0X = 150 ; 
@@ -243,7 +242,7 @@ int Digit3X = 210 ;
 
 parameter [9:0] vader_width = 27;  
 parameter [9:0] vader_height = 24; 
-int vaderY = 70 ; 
+int vaderY = 130 ; 
 int vader1X = 65 ; 
 int vader2X = 185 ; 
 int vader3X = 305 ; 
@@ -258,13 +257,42 @@ int vader5X = 545 ;
 // ****************************  collision detection ***************************
 // ****************************************************************************	
 
-/*always_ff@(posedge Clk)
+always_ff@(posedge Clk)
 begin
-
-
-
-end*/
-
+     // fire trucks 
+	  //&& firetruck_font[BallY-firetruckY][BallX-firetruck1X] != 6'b000000 
+	  if( BallX >= firetruck1X && BallX < firetruck1X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end	
+		
+		//&& firetruck_font[BallY-firetruckY][BallX-firetruck2X] != 6'b000000 
+		else if( BallX >= firetruck2X &&  BallX < firetruck2X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end	
+		
+      //&& firetruck_font[BallY-firetruckY][BallX-firetruck3X] != 6'b000000
+		else if( BallX >= firetruck3X &&  BallX < firetruck3X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height  )	
+				begin 
+					collision <= 1'b1; 
+				end	
+      //&& firetruck_font[BallY-firetruckY][BallX-firetruck4X] != 6'b000000
+		else if( BallX >= firetruck4X &&  BallX < firetruck4X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end			
+      //&& firetruck_font[BallY-firetruckY][BallX-firetruck5X] != 6'b000000
+		else if( BallX >= firetruck5X &&  BallX < firetruck5X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end	
+	
+		else
+			begin 
+				collision <= 1'b0 ;
+			end 
+end
 
 //#########################################################################################
 // *****************************************************************************
@@ -282,8 +310,7 @@ always_comb
 					colorcode = frog_font[DrawY-BallY][DrawX-BallX]	;	
 				end
 		
-	  	
-
+	  
 		//*********** draw the firetruck  ****************** 
 		else if( DrawX >= firetruck1X &&  DrawX < firetruck1X + firetruck_width && DrawY >= firetruckY && DrawY < firetruckY + firetruck_height && firetruck_font[DrawY-firetruckY][DrawX-firetruck1X] != 6'b000000 )	
 				begin 
@@ -424,121 +451,121 @@ always_comb
 		//*********** ROW1 DRAW *********************** 
 		else if( DrawX >= row1gator &&  DrawX < row1gator + gator_width && DrawY >= row1Y && DrawY < row1Y + gator_height  && gator_font[DrawY-row1Y][DrawX-row1gator] != 6'b000000  )	
 			begin 
-				colorcode = gator_font[DrawY-row1Y][DrawX-row1gator]	
+				colorcode = gator_font[DrawY-row1Y][DrawX-row1gator];	
 			end	
 		
 		else if( DrawX >= row1longlog &&  DrawX < row1longlog + longlog_width && DrawY >= row1Y && DrawY < row1Y + longlog_height  && longlog_font[DrawY-row1Y][DrawX-row1longlog] != 6'b000000  )	
 			begin 
-				colorcode = longlog_font[DrawY-row1Y][DrawX-row1longlog]	
+				colorcode = longlog_font[DrawY-row1Y][DrawX-row1longlog];
 			end	
 		
 
 		else if( DrawX >= row1mediumlog &&  DrawX < row1mediumlog + mediumlog_width && DrawY >= row1Y && DrawY < row1Y + mediumlog_height  && mediumlog_font[DrawY-row1Y][DrawX-row1mediumlog] != 6'b000000  )	
 			begin 
-				colorcode = mediumlog_font[DrawY-row1Y][DrawX-row1mediumlog]	
+				colorcode = mediumlog_font[DrawY-row1Y][DrawX-row1mediumlog]	;
 			end	
 
 		else if( DrawX >= row1shortlog &&  DrawX < row1shortlog + shortlog_width && DrawY >= row1Y && DrawY < row1Y + shortlog_height  && shortlog_font[DrawY-row1Y][DrawX-row1shortlog] != 6'b000000  )	
 			begin 
-				colorcode = shortlog_font[DrawY-row1Y][DrawX-row1shortlog]	
+				colorcode = shortlog_font[DrawY-row1Y][DrawX-row1shortlog];	
 			end		
 
 		else if( DrawX >= row1twoshell &&  DrawX < row1twoshell + twoshell_width && DrawY >= row1Y && DrawY < row1Y + twoshell_height  && Twoshell_font[DrawY-row1Y][DrawX-row1twoshell] != 6'b000000  )	
 			begin 
-				colorcode = Twoshell_font[DrawY-row1Y][DrawX-row1twoshell]	
+				colorcode = Twoshell_font[DrawY-row1Y][DrawX-row1twoshell];	
 			end
 		
 		else if( DrawX >= row1threeshell &&  DrawX < row1threeshell + threeshell_width && DrawY >= row1Y && DrawY < row1Y + threeshell_height  && Threeshell_font[DrawY-row1Y][DrawX-row1threeshell] != 6'b000000  )	
 			begin 
-				colorcode = Threeshell_font[DrawY-row1Y][DrawX-row1threeshell]	
+				colorcode = Threeshell_font[DrawY-row1Y][DrawX-row1threeshell];	
 			end
 
 		//*********** ROW2 DRAW *********************** 		 
 		else if( DrawX >= row2longlog &&  DrawX < row2longlog + longlog_width && DrawY >= row2Y && DrawY < row2Y + longlog_height  && longlog_font[DrawY-row2Y][DrawX-row2longlog] != 6'b000000  )	
 			begin 
-				colorcode = longlog_font[DrawY-row2Y][DrawX-row2longlog]	
+				colorcode = longlog_font[DrawY-row2Y][DrawX-row2longlog];	
 			end	
 		
 
 		else if( DrawX >= row2mediumlog &&  DrawX < row2mediumlog + mediumlog_width && DrawY >= row2Y && DrawY < row2Y + mediumlog_height  && mediumlog_font[DrawY-row2Y][DrawX-row2mediumlog] != 6'b000000  )	
 			begin 
-				colorcode = mediumlog_font[DrawY-row2Y][DrawX-row2mediumlog]	
+				colorcode = mediumlog_font[DrawY-row2Y][DrawX-row2mediumlog];	
 			end	
 
 		else if( DrawX >= row2shortlog &&  DrawX < row2shortlog + shortlog_width && DrawY >= row2Y && DrawY < row2Y + shortlog_height  && shortlog_font[DrawY-row2Y][DrawX-row2shortlog] != 6'b000000  )	
 			begin 
-				colorcode = shortlog_font[DrawY-row2Y][DrawX-row2shortlog]	
+				colorcode = shortlog_font[DrawY-row2Y][DrawX-row2shortlog];	
 			end		
 
 		else if( DrawX >= row2twoshell &&  DrawX < row2twoshell + twoshell_width && DrawY >= row2Y && DrawY < row2Y + twoshell_height  && Twoshell_font[DrawY-row2Y][DrawX-row2twoshell] != 6'b000000  )	
 			begin 
-				colorcode = Twoshell_font[DrawY-row2Y][DrawX-row2twoshell]	
+				colorcode = Twoshell_font[DrawY-row2Y][DrawX-row2twoshell];	
 			end
 		
 		else if( DrawX >= row2threeshell &&  DrawX < row2threeshell + threeshell_width && DrawY >= row2Y && DrawY < row2Y + threeshell_height  && Threeshell_font[DrawY-row2Y][DrawX-row2threeshell] != 6'b000000  )	
 			begin 
-				colorcode = Threeshell_font[DrawY-row2Y][DrawX-row2threeshell]	
+				colorcode = Threeshell_font[DrawY-row2Y][DrawX-row2threeshell]	;
 			end
  
 		//*********** ROW3 DRAW *********************** 
 		else if( DrawX >= row3gator &&  DrawX < row3gator + gator_width && DrawY >= row3Y && DrawY < row3Y + gator_height  && gator_font[DrawY-row3Y][DrawX-row3gator] != 6'b000000  )	
 			begin 
-				colorcode = gator_font[DrawY-row3Y][DrawX-row3gator]	
+				colorcode = gator_font[DrawY-row3Y][DrawX-row3gator];	
 			end
 		
 		else if( DrawX >= row3longlog &&  DrawX < row3longlog + longlog_width && DrawY >= row3Y && DrawY < row3Y + longlog_height  && longlog_font[DrawY-row3Y][DrawX-row3longlog] != 6'b000000  )	
 			begin 
-				colorcode = longlog_font[DrawY-row3Y][DrawX-row3longlog]	
+				colorcode = longlog_font[DrawY-row3Y][DrawX-row3longlog];	
 			end	
 		
 
 		else if( DrawX >= row3mediumlog &&  DrawX < row3mediumlog + mediumlog_width && DrawY >= row3Y && DrawY < row3Y + mediumlog_height  && mediumlog_font[DrawY-row3Y][DrawX-row3mediumlog] != 6'b000000  )	
 			begin 
-				colorcode = mediumlog_font[DrawY-row3Y][DrawX-row3mediumlog]	
+				colorcode = mediumlog_font[DrawY-row3Y][DrawX-row3mediumlog];	
 			end	
 
 		else if( DrawX >= row3shortlog &&  DrawX < row3shortlog + shortlog_width && DrawY >= row3Y && DrawY < row3Y + shortlog_height  && shortlog_font[DrawY-row3Y][DrawX-row3shortlog] != 6'b000000  )	
 			begin 
-				colorcode = shortlog_font[DrawY-row3Y][DrawX-row3shortlog]	
+				colorcode = shortlog_font[DrawY-row3Y][DrawX-row3shortlog];	
 			end		
 
 		else if( DrawX >= row3twoshell &&  DrawX < row3twoshell + twoshell_width && DrawY >= row3Y && DrawY < row3Y + twoshell_height  && Twoshell_font[DrawY-row3Y][DrawX-row3twoshell] != 6'b000000  )	
 			begin 
-				colorcode = Twoshell_font[DrawY-row3Y][DrawX-row3twoshell]	
+				colorcode = Twoshell_font[DrawY-row3Y][DrawX-row3twoshell];	
 			end
 		
 		else if( DrawX >= row3threeshell &&  DrawX < row3threeshell + threeshell_width && DrawY >= row3Y && DrawY < row3Y + threeshell_height  && Threeshell_font[DrawY-row3Y][DrawX-row3threeshell] != 6'b000000  )	
 			begin 
-				colorcode = Threeshell_font[DrawY-row3Y][DrawX-row3threeshell]	
+				colorcode = Threeshell_font[DrawY-row3Y][DrawX-row3threeshell];	
 			end
 											
 		
 		//*********** ROW4 DRAW *********************** 		 
 			
-		else if( DrawX >= row3longlog &&  DrawX < row3longlog + longlog_width && DrawY >= row3Y && DrawY < row3Y + longlog_height  && longlog_font[DrawY-row3Y][DrawX-row3longlog] != 6'b000000  )	
+		else if( DrawX >= row4longlog &&  DrawX < row4longlog + longlog_width && DrawY >= row4Y && DrawY < row4Y + longlog_height  && longlog_font[DrawY-row4Y][DrawX-row4longlog] != 6'b000000  )	
 			begin 
-				colorcode = longlog_font[DrawY-row3Y][DrawX-row3longlog]	
+				colorcode = longlog_font[DrawY-row4Y][DrawX-row4longlog];	
 			end	
 		
 
-		else if( DrawX >= row3mediumlog &&  DrawX < row3mediumlog + mediumlog_width && DrawY >= row3Y && DrawY < row3Y + mediumlog_height  && mediumlog_font[DrawY-row3Y][DrawX-row3mediumlog] != 6'b000000  )	
+		else if( DrawX >= row4mediumlog &&  DrawX < row4mediumlog + mediumlog_width && DrawY >= row4Y && DrawY < row4Y + mediumlog_height  && mediumlog_font[DrawY-row4Y][DrawX-row4mediumlog] != 6'b000000  )	
 			begin 
-				colorcode = mediumlog_font[DrawY-row3Y][DrawX-row3mediumlog]	
+				colorcode = mediumlog_font[DrawY-row4Y][DrawX-row4mediumlog];	
 			end	
 
-		else if( DrawX >= row3shortlog &&  DrawX < row3shortlog + shortlog_width && DrawY >= row3Y && DrawY < row3Y + shortlog_height  && shortlog_font[DrawY-row3Y][DrawX-row3shortlog] != 6'b000000  )	
+		else if( DrawX >= row4shortlog &&  DrawX < row4shortlog + shortlog_width && DrawY >= row4Y && DrawY < row4Y + shortlog_height  && shortlog_font[DrawY-row4Y][DrawX-row4shortlog] != 6'b000000  )	
 			begin 
-				colorcode = shortlog_font[DrawY-row3Y][DrawX-row3shortlog]	
+				colorcode = shortlog_font[DrawY-row4Y][DrawX-row4shortlog];	
 			end		
 
-		else if( DrawX >= row3twoshell &&  DrawX < row3twoshell + twoshell_width && DrawY >= row3Y && DrawY < row3Y + twoshell_height  && Twoshell_font[DrawY-row3Y][DrawX-row3twoshell] != 6'b000000  )	
+		else if( DrawX >= row4twoshell &&  DrawX < row4twoshell + twoshell_width && DrawY >= row4Y && DrawY < row4Y + twoshell_height  && Twoshell_font[DrawY-row4Y][DrawX-row4twoshell] != 6'b000000  )	
 			begin 
-				colorcode = Twoshell_font[DrawY-row3Y][DrawX-row3twoshell]	
+				colorcode = Twoshell_font[DrawY-row4Y][DrawX-row4twoshell];	
 			end
 		
-		else if( DrawX >= row3threeshell &&  DrawX < row3threeshell + threeshell_width && DrawY >= row3Y && DrawY < row3Y + threeshell_height  && Threeshell_font[DrawY-row3Y][DrawX-row3threeshell] != 6'b000000  )	
+		else if( DrawX >= row4threeshell &&  DrawX < row4threeshell + threeshell_width && DrawY >= row4Y && DrawY < row4Y + threeshell_height  && Threeshell_font[DrawY-row4Y][DrawX-row4threeshell] != 6'b000000  )	
 			begin 
-				colorcode = Threeshell_font[DrawY-row3Y][DrawX-row3threeshell]	
+				colorcode = Threeshell_font[DrawY-row4Y][DrawX-row4threeshell];	
 			end
 								
 	   
@@ -621,32 +648,32 @@ always_comb
 	    
 
 	    //********** draw the green time bar ********************* 		
-		 else if ( DrawX >= 430 && DrawX < 430 + time_width && DrawY >= 420 && DrawY < 435 ) 
+		 else if ( DrawX >= 430 && DrawX < 430 + time_width && DrawY >= 400 && DrawY < 415 ) 
 				begin 	
 					 colorcode = 6'b000010 ;			
 				end 
 	    
 		
 		 //********** draw 3 hearts ********************* 		
-		 else if ( DrawX >= heart1X && DrawX <  heart1X + heart_width && DrawY >= heartY && DrawY < heartY + heart_height && heart_font[DrawY-heartY][DrawX-heart1X] != 6'b000000  ) 
+		 else if ( DrawX >= heart1X && DrawX <  heart1X + heart_width && DrawY >= heartY && DrawY < heartY + heart_height && heart_font[DrawY-heartY][DrawX-heart1X] != 6'b000000 && ( lives == 3'b011 || lives == 3'b010 ||  lives == 3'b001 ) ) 
 				begin 	
 					 colorcode = heart_font[DrawY-heartY][DrawX-heart1X] ;			
 				end 
 		 
-		 else if ( DrawX >= heart2X && DrawX <  heart2X + heart_width && DrawY >= heartY && DrawY < heartY + heart_height && heart_font[DrawY-heartY][DrawX-heart2X] != 6'b000000 ) 
+		 else if ( DrawX >= heart2X && DrawX <  heart2X + heart_width && DrawY >= heartY && DrawY < heartY + heart_height && heart_font[DrawY-heartY][DrawX-heart2X] != 6'b000000 && ( lives == 3'b011 || lives == 3'b010 ) ) 
 				begin 	
 					 colorcode = heart_font[DrawY-heartY][DrawX-heart2X]  ;			
 				end 
 		
-		 else if ( DrawX >= heart3X && DrawX <  heart3X + heart_width && DrawY >= heartY && DrawY < heartY + heart_height && heart_font[DrawY-heartY][DrawX-heart3X] != 6'b000000   ) 
+		 else if ( DrawX >= heart3X && DrawX <  heart3X + heart_width && DrawY >= heartY && DrawY < heartY + heart_height && heart_font[DrawY-heartY][DrawX-heart3X] != 6'b000000 && lives == 3'b011   ) 
 				begin 	
 					 colorcode = heart_font[DrawY-heartY][DrawX-heart3X]  ;			
 				end 
 		 //********** draw the top part green grass and 5 vaders ********************* 	
-		 else if ( (( DrawY >= 110 ) && ( DrawY <= 160 )) )	
-				if (DrawY >= 130)
+		 else if ( (( DrawY >= 105 ) && ( DrawY <= 155 )) )	
+				if (DrawY >= 125)
 						// ------------
-						if ( (( DrawX >= 50 ) && ( DrawX <= 110 )) ||  ( (DrawX >= 170) && (DrawX <=230)) || ( (DrawX >= 290) && (DrawX <=350))  ||  ( (DrawX >= 410) && (DrawX <=470))  ||  ( (DrawX >= 530) && (DrawX <=590))	) 
+						if ( (( DrawX >= 60 ) && ( DrawX <= 100 )) ||  ( (DrawX >= 180) && (DrawX <=220)) || ( (DrawX >= 300) && (DrawX <=340))  ||  ( (DrawX >= 420) && (DrawX <=460))  ||  ( (DrawX >= 540) && (DrawX <=580))	) 
 								 if ( DrawX >= vader1X && DrawX <  vader1X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader1X] != 6'b000000  ) 
 								 begin 	
 										colorcode = vader_font[DrawY-vaderY][DrawX-vader1X] ;			
@@ -751,13 +778,11 @@ always_ff@(posedge clk_4Hz)
 			 firetruck3X <= 640 ;
 		end 	
 	
-	end 
 	if( firetruck4X == 0 ) 
 		begin 
 			 firetruck4X <= 640 ;
 		end 	
 	
-	end 
 	if( firetruck5X == 0 ) 
 		begin 
 			 firetruck5X <= 640 ;
@@ -790,13 +815,10 @@ always_ff@(posedge clk_4Hz)
 			 bus3X <= 0;
 		end 	
 	
-	end 
 	if( bus4X == 640 ) 
 		begin 
 			 bus4X <= 0;
 		end 	
-	
-	end 
 	if( bus5X == 640 ) 
 		begin 
 			 bus5X <= 0 ;
@@ -828,14 +850,10 @@ always_ff@(posedge clk_4Hz)
 		begin 
 			 motorcycle3X <= 640 ;
 		end 	
-	
-	end 
 	if( motorcycle4X == 0 ) 
 		begin 
 			 motorcycle4X <= 640 ;
 		end 	
-	
-	end 
 	if( motorcycle5X == 0 ) 
 		begin 
 			 motorcycle5X <= 640 ;
@@ -867,19 +885,14 @@ always_ff@(posedge clk_4Hz)
 		begin 
 			 truck3X <= 640 ;
 		end 	
-	
-	end 
 	if( truck4X == 0 ) 
 		begin 
 			 truck4X <= 640 ;
 		end 	
-	
-	end 
 	if( truck5X == 0 ) 
 		begin 
 			 truck5X <= 640 ;
 		end 	
-	
 	end	
 
 ////////////////////////////////
@@ -906,14 +919,10 @@ always_ff@(posedge clk_4Hz)
 		begin 
 			 policecar3X <= 0 ;
 		end 	
-	
-	end 
 	if( policecar4X == 640 ) 
 		begin 
 			 policecar4X <= 0 ;
 		end 	
-	
-	end 
 	if( policecar5X == 640 ) 
 		begin 
 			 policecar5X <= 0 ;
@@ -947,14 +956,12 @@ always_ff@(posedge clk_4Hz)
 		begin 
 			 row1shortlog <= 640 ;
 		end 	
-	
-	end 
+
 	if( row1mediumlog == 0 ) 
 		begin 
 			 row1mediumlog <= 640 ;
 		end 	
-	
-	end 
+
 	if( row1twoshell == 0 ) 
 		begin 
 			 row1twoshell <= 640 ;
@@ -962,7 +969,7 @@ always_ff@(posedge clk_4Hz)
 	if( row1threeshell == 0 ) 
 		begin 
 			 row1threeshell <= 640 ;
-		en		
+		end		
 	
 	end	
 
@@ -992,14 +999,12 @@ always_ff@(posedge clk_4Hz)
 		begin 
 			 row3shortlog <= 640 ;
 		end 	
-	
-	end 
+
 	if( row3mediumlog == 0 ) 
 		begin 
 			 row3mediumlog <= 640 ;
 		end 	
-	
-	end 
+
 	if( row3twoshell == 0 ) 
 		begin 
 			 row3twoshell <= 640 ;
@@ -1007,7 +1012,7 @@ always_ff@(posedge clk_4Hz)
 	if( row3threeshell == 0 ) 
 		begin 
 			 row3threeshell <= 640 ;
-		en		
+		end		
 	
 	end	
 
@@ -1031,14 +1036,12 @@ always_ff@(posedge clk_4Hz)
 		begin 
 			 row2shortlog <= 0 ;
 		end 	
-	
-	end 
+
 	if( row2mediumlog == 640 ) 
 		begin 
 			 row2mediumlog <= 0 ;
 		end 	
-	
-	end 
+
 	if( row2twoshell == 640 ) 
 		begin 
 			 row2twoshell <= 0 ;
@@ -1046,7 +1049,7 @@ always_ff@(posedge clk_4Hz)
 	if( row2threeshell == 640 ) 
 		begin 
 			 row2threeshell <= 0 ;
-		en		
+		end		
 	
 	end	
 
@@ -1070,14 +1073,12 @@ always_ff@(posedge clk_4Hz)
 		begin 
 			 row4shortlog <= 0 ;
 		end 	
-	
-	end 
+
 	if( row4mediumlog == 640 ) 
 		begin 
 			 row4mediumlog <= 0 ;
 		end 	
-	
-	end 
+
 	if( row4twoshell == 640 ) 
 		begin 
 			 row4twoshell <= 0 ;
@@ -1085,7 +1086,7 @@ always_ff@(posedge clk_4Hz)
 	if( row4threeshell == 640 ) 
 		begin 
 			 row4threeshell <= 0 ;
-		en		
+		end		
 	
 	end	
 
