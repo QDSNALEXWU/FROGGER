@@ -17,7 +17,10 @@
 module  ball ( input         Reset, 
                              frame_clk,  // The clock indicating a new frame (~60Hz)
                input [15:0] keycode,
-					output [9:0]  BallX, BallY, BallS // Ball coordinates and size
+			   output [9:0]  BallX, BallY, BallS, // Ball coordinates and size
+               output [3:0]  ten,
+               output [3:0]  hundred,
+               output [3:0]  thousand    
               );
     
     // W  8'h001A
@@ -33,12 +36,12 @@ module  ball ( input         Reset,
     logic [9:0] Ball_X_Pos_in, Ball_X_Motion_in, Ball_Y_Pos_in, Ball_Y_Motion_in;
      
     parameter [9:0] Ball_X_Center=320;  // Center position on the X axis
-    parameter [9:0] Ball_Y_Center=430;  // Center position on the Y axis
+    parameter [9:0] Ball_Y_Center=419;  // Center position on the Y axis
     parameter [9:0] Ball_X_Min=0;       // Leftmost point on the X axis
     parameter [9:0] Ball_X_Max=639;     // Rightmost point on the X axis
     parameter [9:0] Ball_Y_Min=50;       // Topmost point on the Y axis
     parameter [9:0] Ball_Y_Max=438;     // Bottommost point on the Y axis
-    parameter [9:0] Ball_X_Step=3;      // Step size on the X axis
+    parameter [9:0] Ball_X_Step=2;      // Step size on the X axis
     parameter [9:0] Ball_Y_Step=4;      // Step size on the Y axis
     parameter [9:0] Ball_Size=8;        // Ball size
     
@@ -52,8 +55,12 @@ module  ball ( input         Reset,
         begin
             Ball_X_Pos <= Ball_X_Center;
             Ball_Y_Pos <= Ball_Y_Center;
-            Ball_X_Motion <= 10'd0;
-            Ball_Y_Motion <= 10'd0;
+            Ball_X_Motion <= 10'b0;
+            Ball_Y_Motion <= 10'b0;
+            ten <= 4'b0;
+            hundred <= 4'b0;
+            thousand <= 4'b0;
+
         end
         else 
         begin
@@ -81,13 +88,13 @@ module  ball ( input         Reset,
 					//Ball_Y_Motion_in = (~(Ball_Y_Step) + 1'b1);  // 2's complement.  
 					Ball_Y_Motion_in = 10'b0 ;
 					Ball_X_Motion_in = 10'b0 ;
-				end 
+                end 
         else if ( Ball_Y_Pos <= Ball_Y_Min + Ball_Size )  // Ball is at the top edge, BOUNCE!
             begin 
 					//Ball_Y_Motion_in = Ball_Y_Step;
 					Ball_Y_Motion_in = 10'b0 ;
 					Ball_X_Motion_in = 10'b0 ;
-				end 
+            end 
         else if ( (Ball_X_Pos + Ball_Size) >= Ball_X_Max )  // Ball is at the right edge, BOUNCE!
             begin
 					//Ball_X_Motion_in = (~ (Ball_X_Step) + 1'b1);  
@@ -99,30 +106,78 @@ module  ball ( input         Reset,
 					//Ball_X_Motion_in = Ball_X_Step;
 					Ball_X_Motion_in = 10'b0 ;
 					Ball_Y_Motion_in = 10'b0;
-				end 
+			end 
         else 
             begin 
 					case (keycode)
-						8'h001A : // W & UP    
+						
+                        8'h001A : // W & UP    
 						  begin 	
-						  Ball_Y_Motion_in = (~ (Ball_Y_Step) + 1'b1); 
-                    Ball_X_Motion_in = 10'b0;
-						  end	
-						8'h0004 : // A & LEFT 
-                    begin 
+						    Ball_Y_Motion_in = (~ (Ball_Y_Step) + 1'b1); 
+                            Ball_X_Motion_in = 10'b0;
+						    
+                            ten = ten + 1 ;
+                            if ( ten == 4'b1010 ) 
+                                begin 
+                                  ten = 4'b0000 ; 
+                                   hundred = hundred + 1 ;
+                                   if (hundred == 4'b1010){
+                                        hundred = 4'b0000 ;
+                                        thousand = thousand + 1 ; 
+                                   } 
+                                end 
+                          
+                          end	
+						
+                        8'h0004 : // A & LEFT 
+                        begin 
 						  Ball_X_Motion_in = (~ (Ball_X_Step) + 1'b1); 
-                    Ball_Y_Motion_in = 10'b0;
-						  end		
-						8'h0016 : // S & DOWN
-                    begin 
+                          Ball_Y_Motion_in = 10'b0;
+						  
+                          ten = ten + 1 ;
+                            if ( ten == 4'b1010 ) 
+                                begin 
+                                  ten = 4'b0000 ; 
+                                   hundred = hundred + 1 ;
+                                   if (hundred == 4'b1010){
+                                        hundred = 4'b0000 ;
+                                        thousand = thousand + 1 ; 
+                                   } 
+                                end  
+
+                        end		
+						
+                        8'h0016 : // S & DOWN
+                        begin 
 						  Ball_Y_Motion_in = Ball_Y_Step ;//
-                    Ball_X_Motion_in = 10'b0; 
-						  end 				
+                          Ball_X_Motion_in = 10'b0; 
+						  
+                          ten = ten + 1 ;
+                            if ( ten == 4'b1010 ) 
+                                begin 
+                                  ten = 4'b0000 ; 
+                                   hundred = hundred + 1 ;
+                                   if (hundred == 4'b1010){
+                                        hundred = 4'b0000 ;
+                                        thousand = thousand + 1 ; 
+                                   } 
+                                end 
+                        
+
+                        end 				
 						8'h0007 : // D & RIGHT
-                    begin  
-						  Ball_X_Motion_in = Ball_X_Step;//
-                    Ball_Y_Motion_in = 10'b0;
-						  end 		   
+                        begin  
+					        ten = ten + 1 ;
+                            if ( ten == 4'b1010 ) 
+                                begin 
+                                  ten = 4'b0000 ; 
+                                   hundred = hundred + 1 ;
+                                   if (hundred == 4'b1010){
+                                        hundred = 4'b0000 ;
+                                        thousand = thousand + 1 ; 
+                                   } 
+                                end 
+                        end 		   
 						// doesn't move when we change somehting here 
 						8'h0000 :
                     begin  

@@ -199,52 +199,52 @@ end
 always_comb
 begin
 	case (digit)
-		3'b0000 : 
+		4'b0000 : 
 			begin 	
 				font = zero_font ; 
 			end	
 		
-		3'b0001 : 
+		4'b0001 : 
 			begin 	
 				font = one_font ; 
 			end	
 
-		3'b0010 : 
+		4'b0010 : 
 			begin 	
 				font = two_font ; 
 			end	
 
-		3'b0011  : 
+		4'b0011  : 
 			begin 	
 				font = three_font ; 
 			end		
 
-		3'b0100 : 
+		4'b0100 : 
 			begin 	
 				font = four_font ; 
 			end		
 
-		3'b0101 : 
+		4'b0101 : 
 			begin 	
 				font = five_font ; 
 			end	
 
-		3'b0110 : 
+		4'b0110 : 
 			begin 	
 				font = six_font ; 
 			end
 
-		3'b0111 : 
+		4'b0111 : 
 			begin 	
 				font = seven_font ; 
 			end		
 
-		3'b1000: 
+		4'b1000: 
 			begin 	
 				font = eight_font ; 
 			end	
 		
-		3'b1001 : 
+		4'b1001 : 
 			begin 	
 				font = nine_font ; 
 			end	
