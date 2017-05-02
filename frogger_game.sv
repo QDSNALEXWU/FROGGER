@@ -260,34 +260,26 @@ int vader5X = 545 ;
 always_ff@(posedge Clk)
 begin
      // fire trucks 
-	  //&& firetruck_font[BallY-firetruckY][BallX-firetruck1X] != 6'b000000 
-	  if( BallX >= firetruck1X && BallX < firetruck1X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+	  if( BallX >= firetruck1X && BallX < firetruck1X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck1X] != 6'b000000 )	
 				begin 
 					collision <= 1'b1; 
 				end	
-		
-		//&& firetruck_font[BallY-firetruckY][BallX-firetruck2X] != 6'b000000 
-		else if( BallX >= firetruck2X &&  BallX < firetruck2X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+		else if( BallX >= firetruck2X &&  BallX < firetruck2X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck2X] != 6'b000000 )	
 				begin 
 					collision <= 1'b1; 
 				end	
-		
-      //&& firetruck_font[BallY-firetruckY][BallX-firetruck3X] != 6'b000000
-		else if( BallX >= firetruck3X &&  BallX < firetruck3X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height  )	
+		else if( BallX >= firetruck3X &&  BallX < firetruck3X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck3X] != 6'b000000 )	
 				begin 
 					collision <= 1'b1; 
 				end	
-      //&& firetruck_font[BallY-firetruckY][BallX-firetruck4X] != 6'b000000
-		else if( BallX >= firetruck4X &&  BallX < firetruck4X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+		else if( BallX >= firetruck4X &&  BallX < firetruck4X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck4X] != 6'b000000 )	
 				begin 
 					collision <= 1'b1; 
 				end			
-      //&& firetruck_font[BallY-firetruckY][BallX-firetruck5X] != 6'b000000
-		else if( BallX >= firetruck5X &&  BallX < firetruck5X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+		else if( BallX >= firetruck5X &&  BallX < firetruck5X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck5X] != 6'b000000 )	
 				begin 
 					collision <= 1'b1; 
 				end	
-	
 		else
 			begin 
 				collision <= 1'b0 ;
@@ -310,7 +302,8 @@ always_comb
 					colorcode = frog_font[DrawY-BallY][DrawX-BallX]	;	
 				end
 		
-	  
+	  	
+
 		//*********** draw the firetruck  ****************** 
 		else if( DrawX >= firetruck1X &&  DrawX < firetruck1X + firetruck_width && DrawY >= firetruckY && DrawY < firetruckY + firetruck_height && firetruck_font[DrawY-firetruckY][DrawX-firetruck1X] != 6'b000000 )	
 				begin 
