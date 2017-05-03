@@ -74,6 +74,9 @@ module lab8( input               CLOCK_50,
     logic [15:0] hpi_data_in, hpi_data_out;
     logic hpi_r, hpi_w,hpi_cs;
     logic collision ;
+    logic in_water ;
+    logic success ; 
+    logic [2:0] shift ;
 	      
     // Self Declared Variables
     logic [9:0] DrawX,DrawY,BallX,BallY,BallS;

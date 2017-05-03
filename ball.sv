@@ -17,12 +17,15 @@
 module  ball ( input         Reset, 
                              frame_clk,  // The clock indicating a new frame (~60Hz)
                input [15:0]  keycode,
-					input  collision,
-					output [9:0]  BallX, BallY, BallS, // Ball coordinates and size
+			   input  collision,
+    		   input in_water ,
+    		   input success , 
+    		   input [2:0] shift ,
+			   output [9:0]  BallX, BallY, BallS, // Ball coordinates and size
                output [3:0]  ten,
                output [3:0]  hundred,
                output [3:0]  thousand,
-				   output [2:0]  lives
+			   output [2:0]  lives
               );
     
     // W  8'h001A
@@ -56,8 +59,28 @@ module  ball ( input         Reset,
     assign lives = hearts ;
 	 
 	 
+	always_ff @ (posedge frame_clk or posedge Reset)
+    begin 	
+		if ( shift == 3'b001 ) 
+			begin 
+				Ball_X_Pos <= Ball_X_Pos - 1  ; 
+				Ball_Y_Pos <= Ball_Y_Pos ; 
+			end 
+		else if ( shift == 3'b010 ) 
+			begin 
+				Ball_X_Pos <= Ball_X_Pos + 1  ; 
+				Ball_Y_Pos <= Ball_Y_Pos ; 
+			end 
+		else 
+			begin 
+				Ball_X_Pos <= Ball_X_Pos ; 
+				Ball_Y_Pos <= Ball_Y_Pos ; 
+			end 
+
+	end 
 	 
-	 
+
+
     always_ff @ (posedge frame_clk or posedge Reset)
     begin
         if (Reset)
@@ -67,12 +90,27 @@ module  ball ( input         Reset,
 				hearts = 3'b011 ;
 		  end
 		  
+		  else if (success)
+		  begin
+            Ball_X_Pos <= Ball_X_Center;
+            Ball_Y_Pos <= Ball_Y_Center;
+			hearts = 3'b011 ;
+		  end
+
 		  else if (collision)
 		  begin 
 				hearts <= hearts - 1 ;
 				Ball_X_Pos <= Ball_X_Center ; 
 				Ball_Y_Pos <= Ball_Y_Center ; 		
-		  end 	
+		  end 
+
+		  else if (in_water)
+		  begin 
+				hearts <= hearts - 1 ;
+				Ball_X_Pos <= Ball_X_Center ; 
+				Ball_Y_Pos <= Ball_Y_Center ; 		
+		  end 
+
 		  else if (hearts == 3'b000)
 		  begin
             Ball_X_Pos <= Ball_X_Center;
