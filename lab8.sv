@@ -48,7 +48,7 @@ module lab8( input               CLOCK_50,
     logic [0:12][0:26][0:5] gator_font ;
     logic [0:23][0:26][0:5] vader_font ; 
     logic [0:11][0:27][0:5] policecar_font ;
-	 logic [0:13][0:24][0:5] truck_font ;   	
+	logic [0:13][0:24][0:5] truck_font ;   	
     logic [0:17][0:22][0:5] skull_font ;
     logic [0:13][0:13][0:5] S_font ;  
     logic [0:13][0:13][0:5] C_font ;  
@@ -57,7 +57,9 @@ module lab8( input               CLOCK_50,
     logic [0:13][0:13][0:5] E_font ;  
     logic [0:13][0:13][0:5] T_font ;  
     logic [0:13][0:13][0:5] I_font ;
-    logic [0:13][0:13][0:5] M_font ; 
+    logic [0:13][0:13][0:5] M_font ;
+    logic [0:20][0:158][0:5] startScreen_font ;
+    logic [0:43][0:89][0:5] endScreen_font ;
     logic [3:0]  ten ;  
     logic [3:0]  hundred ;
     logic [3:0]  thousand ; 
