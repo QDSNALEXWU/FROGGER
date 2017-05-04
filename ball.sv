@@ -15,18 +15,24 @@
 
 
 module  ball ( input         Reset, 
+	
                              frame_clk,  // The clock indicating a new frame (~60Hz)
-               input [15:0]  keycode,
-			   input  collision,
-    		   input in_water ,
-    		   input success , 
-    		   input [2:0] shift ,
-			   output [9:0]  BallX, BallY, BallS, // Ball coordinates and size
+               input Clk,
+					input [15:0]  keycode,
+					input  collision,
+					input in_water ,
+					input success ,
+					input savage ,
+					input [2:0] shift ,
+					output [9:0]  BallX, BallY, BallS, // Ball coordinates and size
                output [3:0]  ten,
                output [3:0]  hundred,
                output [3:0]  thousand,
-			   output [2:0]  lives
-              );
+					output [2:0]  lives,
+					output timer_stop, 
+					output halt,   
+					output skull 
+				  );
     
     // W  8'h001A
     // A  8'h0004
@@ -56,34 +62,27 @@ module  ball ( input         Reset,
     assign BallX = Ball_X_Pos;
     assign BallY = Ball_Y_Pos;
     assign BallS = Ball_Size;
-    assign lives = hearts ;
+    assign lives = hearts ; 
+	 logic clk_4Hz ;
+	 MediumClock clock_generator2(.*);
 	 
+	 logic stop = 1'b1 ;
+	 logic hold = 1'b1 ; 
+	 assign timer_stop = stop ; 
+	 assign halt = hold ;
 	 
-	always_ff @ (posedge frame_clk or posedge Reset)
-    begin 	
-		if ( shift == 3'b001 ) 
-			begin 
-				Ball_X_Pos <= Ball_X_Pos - 1  ; 
-				Ball_Y_Pos <= Ball_Y_Pos ; 
-			end 
-		else if ( shift == 3'b010 ) 
-			begin 
-				Ball_X_Pos <= Ball_X_Pos + 1  ; 
-				Ball_Y_Pos <= Ball_Y_Pos ; 
-			end 
-		else 
-			begin 
-				Ball_X_Pos <= Ball_X_Pos ; 
-				Ball_Y_Pos <= Ball_Y_Pos ; 
-			end 
-
-	end 
+	 int skull_counter = 0  ;
+	 logic  draw_skull = 1'b0 ;
 	 
-
-
-    always_ff @ (posedge frame_clk or posedge Reset)
+	 assign skull = draw_skull ;
+	 
+    always_ff @ (posedge clk_4Hz or posedge Reset)
     begin
-        if (Reset)
+        
+		  //timer_stop = 1'b1 ;
+		  //halt = 1'b1 ;
+		  
+		  if (Reset)
         begin
             Ball_X_Pos <= Ball_X_Center;
             Ball_Y_Pos <= Ball_Y_Center;
@@ -94,46 +93,53 @@ module  ball ( input         Reset,
 		  begin
             Ball_X_Pos <= Ball_X_Center;
             Ball_Y_Pos <= Ball_Y_Center;
-			hearts = 3'b011 ;
+				hearts = 3'b011 ;
+				stop = 1'b1 ;
 		  end
-
-		  else if (collision)
+		
+		  else if (savage)
+		  begin
+            Ball_X_Pos <= Ball_X_Center;
+            Ball_Y_Pos <= Ball_Y_Center;
+		  end
+		
+		
+		else if (draw_skull == 1'b1) 	
+			begin 
+				skull_counter <= skull_counter + 1 ;
+				
+				if (skull_counter == 9 )	
+				begin 
+					 skull_counter <= 0 ;
+					 draw_skull <= 1'b0 ; 
+					 Ball_X_Pos <= Ball_X_Center ; 
+					 Ball_Y_Pos <= Ball_Y_Center ;  
+				end 
+				
+			end 
+		
+		  else if ( collision == 1'b1 )
 		  begin 
 				hearts <= hearts - 1 ;
-				Ball_X_Pos <= Ball_X_Center ; 
-				Ball_Y_Pos <= Ball_Y_Center ; 		
+				//Ball_X_Pos <= Ball_X_Center ; 
+				//Ball_Y_Pos <= Ball_Y_Center ; 		
+				draw_skull <= 1'b1 ;
 		  end 
 
-		  else if (in_water)
+		  else if ( in_water == 1'b1 )
 		  begin 
 				hearts <= hearts - 1 ;
-				Ball_X_Pos <= Ball_X_Center ; 
-				Ball_Y_Pos <= Ball_Y_Center ; 		
+				//Ball_X_Pos <= Ball_X_Center ; 
+				//Ball_Y_Pos <= Ball_Y_Center ; 
+				draw_skull <= 1'b1 ;  	
 		  end 
 
 		  else if (hearts == 3'b000)
 		  begin
             Ball_X_Pos <= Ball_X_Center;
             Ball_Y_Pos <= Ball_Y_Center;
-				hearts = 3'b011 ;
-		  end
-        /*
-		  else if ( Ball_Y_Pos >= Ball_Y_Max )	
-		  begin 
-				Ball_X_Pos <= Ball_X_Center ; 
-				Ball_Y_Pos <= Ball_Y_Center ; 
-		 
-		  end
-		  */  
-		  /*
-		  else if ( Ball_Y_Pos <= Ball_Y_Min )	
-		  begin 
-					Ball_X_Pos <= Ball_X_Center ; 
-					Ball_Y_Pos <= Ball_Y_Center ; 
-		 
-		  end 
-		  */
-		  
+				//hearts = 3'b011 ;
+		  end		  
 		  else if ( Ball_X_Pos >= Ball_X_Max )	
 		  begin 
 					Ball_X_Pos <= Ball_X_Center ; 
@@ -147,7 +153,8 @@ module  ball ( input         Reset,
 					Ball_Y_Pos <= Ball_Y_Center ; 
 					hearts <= hearts - 1 ;
 		  end 
-		
+		  
+		  
 		  else 
 		  begin 
 					case (keycode)
@@ -201,6 +208,15 @@ module  ball ( input         Reset,
 											Ball_Y_Pos <= Ball_Y_Pos ; 
 										end 
                         end 				
+						
+						8'h002c : // space 
+								begin 	
+									stop <= 1'b0 ; 	
+									hold <= 1'b0 ;
+									Ball_X_Pos <= Ball_X_Center ; 
+									Ball_Y_Pos <= Ball_Y_Center ; 
+								end 
+						
 						8'h0007 : // D & RIGHT
 								begin 
 									if (tmp != keycode)
@@ -215,12 +231,32 @@ module  ball ( input         Reset,
 											Ball_Y_Pos <= Ball_Y_Pos ; 
 										end 
                         end 								
+						//space 
+						
+						
+						
 						// doesn't move when we change somehting here 
 						8'h0000 :
                     begin  
-								Ball_X_Pos <= Ball_X_Pos ;	
-								Ball_Y_Pos <= Ball_Y_Pos ;	
+			
 								tmp <= keycode ;
+								/*Ball_X_Pos <= Ball_X_Pos ;	
+								Ball_Y_Pos <= Ball_Y_Pos ;*/
+								if ( shift == 3'b001 ) 
+								begin 
+									Ball_X_Pos <= Ball_X_Pos - 1  ; 
+									Ball_Y_Pos <= Ball_Y_Pos ; 
+								end 
+								else if ( shift == 3'b010 ) 
+								begin 
+									Ball_X_Pos <= Ball_X_Pos + 1  ; 
+									Ball_Y_Pos <= Ball_Y_Pos ; 
+								end 
+								else  
+								begin 
+									Ball_X_Pos <= Ball_X_Pos ; 
+									Ball_Y_Pos <= Ball_Y_Pos ; 
+								end 		  	  
 						  end 	
 						
 						default : 
@@ -237,7 +273,7 @@ module  ball ( input         Reset,
  
 
 	 // increment based on keycode  
-    always_ff @ (posedge frame_clk or posedge Reset)
+    always_ff @ (posedge clk_4Hz or posedge Reset)
     begin
 		  if (Reset)
         begin

@@ -48,7 +48,7 @@ module lab8( input               CLOCK_50,
     logic [0:12][0:26][0:5] gator_font ;
     logic [0:23][0:26][0:5] vader_font ; 
     logic [0:11][0:27][0:5] policecar_font ;
-	logic [0:13][0:24][0:5] truck_font ;   	
+	 logic [0:13][0:24][0:5] truck_font ;   	
     logic [0:17][0:22][0:5] skull_font ;
     logic [0:13][0:13][0:5] S_font ;  
     logic [0:13][0:13][0:5] C_font ;  
@@ -64,6 +64,8 @@ module lab8( input               CLOCK_50,
     logic [3:0]  hundred ;
     logic [3:0]  thousand ; 
 	 logic [2:0]  lives ;
+	 logic timer_stop ; 
+	 logic halt ; 
     
 	 // ********* VARIABLES GROUP 2 *****************************     
     logic Reset_h, Clk;
@@ -78,6 +80,8 @@ module lab8( input               CLOCK_50,
     logic collision ;
     logic in_water ;
     logic success ; 
+	 logic savage ;
+	 logic skull ;
     logic [2:0] shift ;
 	      
     // Self Declared Variables
@@ -141,7 +145,7 @@ module lab8( input               CLOCK_50,
      letterfont letterfont_instance(.*);
 
 	 // game logic control unit 
-	 frogger_game game_instance(.*);
+	 frogger_game game_instance(.*,.frame_clk(VGA_VS));
     
 	 // map RGB value with color code 
 	 color_mapper color_instance(.*);

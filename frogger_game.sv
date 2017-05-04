@@ -20,7 +20,8 @@
 module	frogger_game ( input [9:0] BallX, BallY, 
 								DrawX, DrawY, 
 								BallS,
-					   			input logic [0:15][0:16][0:5] frog_font,
+					   		input frame_clk,
+								input logic [0:15][0:16][0:5] frog_font,
 								input logic [0:15][0:24][0:5] firetruck_font,
 								input logic [0:13][0:18][0:5] bus_font,
 								input logic [0:15][0:22][0:5] motorcycle_font,
@@ -28,13 +29,13 @@ module	frogger_game ( input [9:0] BallX, BallY,
 								input logic [0:15][0:49][0:5] mediumlog_font,
 								input logic [0:15][0:72][0:5] longlog_font,	
 								input logic [0:15][0:15][0:5] Oneshell_font,
-                   				input logic [0:15][0:32][0:5] Twoshell_font,
-                   				input logic [0:15][0:49][0:5] Threeshell_font, 
-                   				input logic [0:12][0:26][0:5] gator_font,
-                   				input logic [0:23][0:26][0:5] vader_font, 
+                   		input logic [0:15][0:32][0:5] Twoshell_font,
+                   		input logic [0:15][0:49][0:5] Threeshell_font, 
+                   		input logic [0:12][0:26][0:5] gator_font,
+                   		input logic [0:23][0:26][0:5] vader_font, 
 								input logic [0:11][0:27][0:5] policecar_font,
 								input logic [0:11][0:13][0:5] heart_font, 	
-							   	input logic [0:13][0:24][0:5] truck_font,   	
+								input logic [0:13][0:24][0:5] truck_font,   	
 								input logic [0:17][0:22][0:5] skull_font,
 								input logic [0:13][0:13][0:5] S_font,  
     							input logic [0:13][0:13][0:5] C_font,  
@@ -45,16 +46,20 @@ module	frogger_game ( input [9:0] BallX, BallY,
     							input logic [0:13][0:13][0:5] I_font,
     							input logic [0:13][0:13][0:5] M_font,  
 								input logic [3:0] ten,
-               					input logic [3:0] hundred,
-                				input logic [3:0] thousand,  
+               			input logic [3:0] hundred,
+                			input logic [3:0] thousand,  
 								input logic [2:0] lives,
 								input logic [0:20][0:158][0:5] startScreen_font ,
     							input logic [0:43][0:89][0:5] endScreen_font ,
 								input Clk,
+								input timer_stop , 
+								input halt, 
+								input skull,
 								output [0:5] colorcode,
 								output collision ,
 								output in_water , 
 								output success,
+								output savage,
 								output [2:0] shift 
 								);
 
@@ -67,6 +72,22 @@ module	frogger_game ( input [9:0] BallX, BallY,
 //  the window is 640 wide , 480 height
 // ********** group 1 - const variables  *********** 
 // const varables used to draw 
+
+
+int startScreenY = 200 ; 
+int startScreenX = 240 ;
+int startScreen_width = 159 ; 
+int startScreen_height = 21 ;
+
+
+int endScreen_width = 90 ; 
+int endScreen_height = 44 ;
+int endScreenX = 275 ; 
+int endScreenY = 200 ; 
+
+//[0:17][0:22][0:5] skull_font,
+int skull_height = 18 ; 
+int skull_width = 23 ;
 
 // 258 - 420  road area  
 parameter [9:0] frog_width=17;  
@@ -82,12 +103,12 @@ int truckY = 263;
 int hearts_count = 3 ;
 
 
-int vaders_count = 0 ; 
-int vader1 = 0
-int vader2 = 0
-int vader3 = 0
-int vader4 = 0
-int vader5 = 0 
+//int vaders_count = 0 ; 
+logic vader1 = 1'b0 ;
+logic vader2 = 1'b0;
+logic vader3 = 1'b0;
+logic vader4 = 1'b0;
+logic vader5 = 1'b0;
 
 // ****************************** ROW1 ***************************************
 /////////////////// firetruck - right to left /////////////////////////////////   
@@ -268,23 +289,19 @@ int vader3X = 305 ;
 int vader4X = 425 ;
 int vader5X = 545 ;	
 
+logic game_over = 1'b0 ;
+
 
 always_ff@(posedge Clk)
 begin
-	if (vaders_count == 5)
+	if ( vader1 == 1'b1 && vader2 == 1'b1 && vader3 == 1'b1 && vader4 == 1'b1 && vader5 == 1'b1 )
 		begin 
-			success == 1'b1 ; 
-			vaders_count == 0 ;
-			vader1 = 0 ;
-			vader2 = 0 ;
-			vader3 = 0 ;
-			vader4 = 0 ;
-			vader5 = 0 ;  
+			success = 1'b1 ; 
 		end 	
 
 	else 
 		begin 
-			success == 1'b0 ; 	
+			success = 1'b0 ; 	
 		end 
 end 
 
@@ -294,154 +311,580 @@ end
 // ****************************************************************************	
 
 always_ff@(posedge Clk)
+
 begin
-       // fire trucks 
-	   if( BallX >= firetruck1X && BallX < firetruck1X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck1X] != 6'b000000 )	
+
+		collision <= 1'b0 ;
+      //if (success)
+		
+		// fire trucks 
+		//&& firetruck_font[BallY-firetruckY][BallX-firetruck1X] != 6'b000000
+	   if( BallX >= firetruck1X && BallX < firetruck1X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
 				begin 
 					collision <= 1'b1; 
 				end	
-		else if( BallX >= firetruck2X &&  BallX < firetruck2X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck2X] != 6'b000000 )	
+		if( BallX + 16 >= firetruck1X && BallX + 16 < firetruck1X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end		
+		
+		if( BallX >= firetruck1X && BallX < firetruck1X + firetruck_width && BallY + 16 >= firetruckY && BallY + 16 < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end
+		
+		if( BallX + 16 >= firetruck1X + 16 && BallX < firetruck1X + firetruck_width && BallY + 16 >= firetruckY && BallY + 16 < firetruckY + firetruck_height )	
 				begin 
 					collision <= 1'b1; 
 				end	
-		else if( BallX >= firetruck3X &&  BallX < firetruck3X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck3X] != 6'b000000 )	
+		
+		///////////////
+		if(BallX + 16 >= firetruck2X && BallX + 16 < firetruck2X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
 				begin 
 					collision <= 1'b1; 
 				end	
-		else if( BallX >= firetruck4X &&  BallX < firetruck4X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck4X] != 6'b000000 )	
+		
+		if(BallX >= firetruck2X && BallX < firetruck2X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end	
+				
+		if(BallX >= firetruck2X && BallX < firetruck2X + firetruck_width && BallY + 16 >= firetruckY && BallY + 16 < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end	
+		
+		if(BallX + 16 >= firetruck2X && BallX + 16  < firetruck2X + firetruck_width && BallY + 16 >= firetruckY && BallY + 16  < firetruckY + firetruck_height )	
 				begin 
 					collision <= 1'b1; 
 				end			
-		else if( BallX >= firetruck5X &&  BallX < firetruck5X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height && firetruck_font[BallY-firetruckY][BallX-firetruck5X] != 6'b000000 )	
+		
+		
+		//////////////
+		if(BallX >= firetruck3X && BallX < firetruck3X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
 				begin 
 					collision <= 1'b1; 
 				end	
-		/////////////////////////////////// BUS //////////////////////////////////////////////////
-		else if( BallX >= bus1X &&  BallX < bus1X + bus_width && BallY >= busY && BallY < busY + bus_height  && bus_font[BallY-busY][BallX-bus1X] != 6'b000000  )	
+		
+		if(BallX + 16 >= firetruck3X  && BallX + 16 < firetruck3X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end	
+		
+		if(BallX >= firetruck3X && BallX < firetruck3X + firetruck_width && BallY + 16 >= firetruckY && BallY + 16 < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end	
+				
+		if(BallX +16 >= firetruck3X && BallX +16  < firetruck3X + firetruck_width && BallY +16 >= firetruckY && BallY + 16 < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end			
+		
+		//////////////
+		if(BallX >= firetruck4X && BallX < firetruck4X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )
+				begin 	
+				collision <= 1'b1; 
+				end			
+		
+		if(BallX + 16 >= firetruck4X && BallX + 16 < firetruck4X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )
+				begin 	
+				collision <= 1'b1; 
+				end	
+		
+		if(BallX >= firetruck4X && BallX < firetruck4X + firetruck_width && BallY +16  >= firetruckY && BallY +16 < firetruckY + firetruck_height )
+				begin 	
+				collision <= 1'b1; 
+				end	
+		
+		if(BallX +16  >= firetruck4X && BallX + 16 < firetruck4X + firetruck_width && BallY + 16 >= firetruckY && BallY + 16 < firetruckY + firetruck_height )
+				begin 	
+				collision <= 1'b1; 
+				end	
+		
+		/////////////////
+		if(BallX >= firetruck5X && BallX < firetruck5X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end
+			
+		if(BallX >= firetruck5X && BallX < firetruck5X + firetruck_width && BallY +16  >= firetruckY && BallY +16 < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end
+			
+		if(BallX +16 >= firetruck5X && BallX + 16 < firetruck5X + firetruck_width && BallY >= firetruckY && BallY < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end
+			
+		if(BallX +16 >= firetruck5X && BallX +16  < firetruck5X + firetruck_width && BallY +16 >= firetruckY && BallY +16  < firetruckY + firetruck_height )	
+				begin 
+					collision <= 1'b1; 
+				end	
+
+		//////////////////////// BUS ///////////////////////////////////////		
+		if(BallX >= bus1X && BallX < bus1X + bus_width && BallY >= busY && BallY < busY + bus_height )	
+				begin 
+					collision <= 1'b1 ;	
+				end 
+		
+		if(BallX  + 16 >= bus1X && BallX + 16 < bus1X + bus_width && BallY >= busY && BallY < busY + bus_height )	
 				begin 
 					collision <= 1'b1 ;	
 				end 
 				
-		else if( BallX >= bus2X &&  BallX < bus2X + bus_width && BallY >= busY && BallY < busY + bus_height  && bus_font[BallY-busY][BallX-bus2X] != 6'b000000  )	
+		if(BallX >= bus1X && BallX < bus1X + bus_width && BallY + 16 >= busY && BallY + 16  < busY + bus_height )	
 				begin 
 					collision <= 1'b1 ;	
 				end 
+		
+		if(BallX + 16  >= bus1X && BallX + 16  < bus1X + bus_width && BallY + 16  >= busY && BallY + 16 < busY + bus_height )	
+				begin 
+					collision <= 1'b1 ;	
+				end 	
+		
 
-		else if( BallX >= bus3X &&  BallX < bus3X + bus_width && BallY >= busY && BallY < busY + bus_height  && bus_font[BallY-busY][BallX-bus3X] != 6'b000000  )	
+		/////////////////		
+		if(BallX >= bus2X && BallX < bus2X + bus_width && BallY >= busY && BallY < busY + bus_height    )	
 				begin 
 					collision <= 1'b1 ;	
 				end 
+		
+		if(BallX + 16 >= bus2X && BallX + 16  < bus2X + bus_width && BallY >= busY && BallY < busY + bus_height    )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+		
+		if(BallX >= bus2X && BallX < bus2X + bus_width && BallY + 16 >= busY && BallY + 16  < busY + bus_height    )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+		
+		if(BallX + 16  >= bus2X && BallX + 16 < bus2X + bus_width && BallY + 16  >= busY && BallY + 16  < busY + bus_height    )	
+				begin 
+					collision <= 1'b1 ;	
+				end
 
-		else if( BallX >= bus4X &&  BallX < bus4X + bus_width && BallY >= busY && BallY < busY + bus_height  && bus_font[BallY-busY][BallX-bus4X] != 6'b000000  )	
+		//////////////////		
+		if(BallX >= bus3X && BallX < bus3X + bus_width && BallY >= busY && BallY < busY + bus_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end 
+		
+		if(BallX + 16 >= bus3X && BallX + 16  < bus3X + bus_width && BallY >= busY && BallY < busY + bus_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end 		
+		
+		if(BallX >= bus3X && BallX < bus3X + bus_width && BallY +16  >= busY && BallY + 16  < busY + bus_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end 
+		
+		if(BallX + 16  >= bus3X && BallX + 16  < bus3X + bus_width && BallY + 16  >= busY && BallY + 16  < busY + bus_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end 
+		
+		/////////////////////		
+		if(BallX >= bus4X && BallX < bus4X + bus_width && BallY >= busY && BallY < busY + bus_height   )	
+				begin 
+					collision <= 1'b1;
+				end 
+				
+		if(BallX + 16  >= bus4X && BallX + 16  < bus4X + bus_width && BallY >= busY && BallY < busY + bus_height   )	
+				begin 
+					collision <= 1'b1;
+				end 		
+		
+		if(BallX >= bus4X && BallX < bus4X + bus_width && BallY + 16  >= busY && BallY + 16  < busY + bus_height   )	
+				begin 
+					collision <= 1'b1;
+				end 
+		
+		if(BallX + 16  >= bus4X && BallX + 16  < bus4X + bus_width && BallY + 16  >= busY && BallY + 16  < busY + bus_height   )	
 				begin 
 					collision <= 1'b1;
 				end 
 	
-		else if( BallX >= bus5X &&  BallX < bus5X + bus_width && BallY >= busY && BallY < busY + bus_height  && bus_font[BallY-busY][BallX-bus5X] != 6'b000000  )	
+		///////////////////////////
+		if(BallX >= bus5X && BallX < bus5X + bus_width && BallY >= busY && BallY < busY + bus_height  )	
 				begin 
 					collision <= 1'b1 ;
 				end 
-				
+		if(BallX + 16  >= bus5X && BallX + 16  < bus5X + bus_width && BallY >= busY && BallY < busY + bus_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end 		
+		if(BallX >= bus5X && BallX < bus5X + bus_width && BallY + 16  >= busY && BallY + 16  < busY + bus_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end
+		if(BallX +16  >= bus5X && BallX + 16  < bus5X + bus_width && BallY + 16  >= busY && BallY + 16 < busY + bus_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end 			
+		
+		
 		///////////////////////////////////// Motorcycle /////////////////////////////////////////////////
 		
-		else if( BallX >= motorcycle1X &&  BallX < motorcycle1X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height && motorcycle_font[BallY-motorcycleY][BallX-motorcycle1X] != 6'b000000  )	
+		if(BallX >= motorcycle1X && BallX < motorcycle1X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height   )	
 				begin 
 					collision <= 1'b1 ;	
 				end	
-
-
-		else if( BallX >= motorcycle2X &&  BallX < motorcycle2X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height && motorcycle_font[BallY-motorcycleY][BallX-motorcycle2X] != 6'b000000  )	
+		if(BallX + 16  >= motorcycle1X && BallX + 16  < motorcycle1X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height  )	
 				begin 
-					collision <= 1'b1 ;
+					collision <= 1'b1 ;	
+				end	
+		if(BallX >= motorcycle1X && BallX < motorcycle1X + motorcycle_width && BallY + 16  >= motorcycleY && BallY + 16  < motorcycleY + motorcycle_height )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		if(BallX + 16  >= motorcycle1X && BallX + 16 < motorcycle1X + motorcycle_width && BallY + 16  >= motorcycleY && BallY + 16  < motorcycleY + motorcycle_height )	
+				begin 
+					collision <= 1'b1 ;	
 				end			
-
-
-		else if( BallX >= motorcycle3X &&  BallX < motorcycle3X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height && motorcycle_font[BallY-motorcycleY][BallX-motorcycle3X] != 6'b000000  )	
-				begin 
-					collision <= 1'b1 ;	
-				end		
-
-		else if( BallX >= motorcycle4X &&  BallX < motorcycle4X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height && motorcycle_font[BallY-motorcycleY][BallX-motorcycle4X] != 6'b000000  )	
-				begin 
-					collision <= 1'b1 ;	
-				end	
 		
-		else if( BallX >= motorcycle5X &&  BallX < motorcycle5X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height && motorcycle_font[BallY-motorcycleY][BallX-motorcycle5X] != 6'b000000  )	
-				begin 
-					collision <= 1'b1 ;	
-				end	
-
-		/////////////////////////////////// POLICECAR /////////////////////////////////////////////////////////////////		
-
-		else if( BallX >= policecar1X &&  BallX < policecar1X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height && policecar_font[BallY-policecarY][BallX-policecar1X] != 6'b000000 )	
+		/////////////////////////////		
+		if(BallX >= motorcycle2X && BallX < motorcycle2X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height  )	
 				begin 
 					collision <= 1'b1 ;
 				end			
-
-		else if( BallX >= policecar2X &&  BallX < policecar2X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height && policecar_font[BallY-policecarY][BallX-policecar2X] != 6'b000000 )	
-				begin 
-					collision <= 1'b1 ;
-				end	
-		else if( BallX >= policecar3X &&  BallX < policecar3X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height && policecar_font[BallY-policecarY][BallX-policecar3X] != 6'b000000 )	
+		if(BallX + 16  >= motorcycle2X && BallX + 16 < motorcycle2X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height   )	
 				begin 
 					collision <= 1'b1 ;
 				end	
 				
-		else if( BallX >= policecar4X &&  BallX < policecar4X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height && policecar_font[BallY-policecarY][BallX-policecar4X] != 6'b000000 )	
+		if(BallX >= motorcycle2X && BallX < motorcycle2X + motorcycle_width && BallY + 16 >= motorcycleY && BallY + 16 < motorcycleY + motorcycle_height  )	
 				begin 
 					collision <= 1'b1 ;
 				end	
-		else if( BallX >= policecar5X &&  BallX < policecar5X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height && policecar_font[BallY-policecarY][BallX-policecar5X] != 6'b000000 )	
+		if(BallX + 16 >= motorcycle2X && BallX  + 16 < motorcycle2X + motorcycle_width && BallY + 16 >= motorcycleY && BallY  + 16< motorcycleY + motorcycle_height  )	
 				begin 
 					collision <= 1'b1 ;
-				end							
-		
-		///////////////////////////////////// TRUCK /////////////////////////////////////////////////////////////////	
-	
-		else if( BallX >= truck1X &&  BallX < truck1X + truck_width && BallY >= truckY && BallY < truckY + truck_height  && truck_font[BallY-truckY][BallX-truck1X] != 6'b000000  )	
-				begin 
-					collision <= 1'b1 ;	
-				end	
-			
-
-		else if( BallX >= truck2X &&  BallX < truck2X + truck_width && BallY >= truckY && BallY < truckY + truck_height  && truck_font[BallY-truckY][BallX-truck2X] != 6'b000000  )	
-				begin 
-					collision <= 1'b1 ;	
 				end			
-
-		
-		else if( BallX >= truck3X &&  BallX < truck3X + truck_width && BallY >= truckY && BallY < truckY + truck_height  && truck_font[BallY-truckY][BallX-truck3X] != 6'b000000  )	
+				
+				
+		////////////////////////////////	
+		if(BallX >= motorcycle3X && BallX < motorcycle3X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height   )	
 				begin 
 					collision <= 1'b1 ;	
-				end			
+				end		
 
-		else if( BallX >= truck4X &&  BallX < truck4X + truck_width && BallY >= truckY && BallY < truckY + truck_height  && truck_font[BallY-truckY][BallX-truck4X] != 6'b000000  )	
+		if(BallX + 16 >= motorcycle3X && BallX + 16 < motorcycle3X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height   )	
 				begin 
 					collision <= 1'b1 ;	
 				end		
 		
-		else if( BallX >= truck5X &&  BallX < truck5X + truck_width && BallY >= truckY && BallY < truckY + truck_height  && truck_font[BallY-truckY][BallX-truck5X] != 6'b000000  )	
+		if(BallX >= motorcycle3X && BallX < motorcycle3X + motorcycle_width && BallY + 16 >= motorcycleY && BallY + 16 < motorcycleY + motorcycle_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end		
+
+		if(BallX + 16 >= motorcycle3X && BallX + 16 < motorcycle3X + motorcycle_width && BallY + 16 >= motorcycleY && BallY + 16 < motorcycleY + motorcycle_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end		
+
+				
+		///////////////////////////////		
+		if(BallX >= motorcycle4X && BallX < motorcycle4X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+		if(BallX + 16 >= motorcycle4X && BallX + 16 < motorcycle4X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+     if(BallX >= motorcycle4X && BallX < motorcycle4X + motorcycle_width && BallY + 16 >= motorcycleY && BallY + 16  < motorcycleY + motorcycle_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+     if(BallX + 16 >= motorcycle4X && BallX + 16 < motorcycle4X + motorcycle_width && BallY + 16 >= motorcycleY && BallY + 16 < motorcycleY + motorcycle_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end			
+		
+		////////////////////////////////////
+		if(BallX >= motorcycle5X && BallX < motorcycle5X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+
+				
+		if(BallX + 16 >= motorcycle5X && BallX + 16 < motorcycle5X + motorcycle_width && BallY >= motorcycleY && BallY < motorcycleY + motorcycle_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end			
+  		
+      if(BallX >= motorcycle5X && BallX < motorcycle5X + motorcycle_width && BallY + 16 >= motorcycleY && BallY + 16 < motorcycleY + motorcycle_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+
+		if(BallX + 16 >= motorcycle5X && BallX + 16 < motorcycle5X + motorcycle_width && BallY + 16 >= motorcycleY && BallY + 16 < motorcycleY + motorcycle_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end			
+		
+		/////////////////////////////////// POLICECAR /////////////////////////////////////////////////////////////////		
+
+		if(BallX  >= policecar1X && BallX < policecar1X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end			
+		if(BallX + 16 >= policecar1X && BallX + 16 < policecar1X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end
+      if(BallX >= policecar1X && BallX < policecar1X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end			
+		if(BallX + 16 >= policecar1X && BallX + 16 < policecar1X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end	
+		
+		/////////////////////////
+		if(BallX >= policecar2X && BallX < policecar2X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height )	
+				begin 
+					collision <= 1'b1 ;
+				end
+				
+		if(BallX + 16 >= policecar2X && BallX + 16 < policecar2X + policecar_width && BallY  >= policecarY && BallY < policecarY + policecar_height )	
+				begin 
+					collision <= 1'b1 ;
+				end
+				
+		if(BallX >= policecar2X && BallX < policecar2X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height )	
+				begin 
+					collision <= 1'b1 ;
+				end	
+				
+		 if(BallX + 16 >= policecar2X && BallX + 16 < policecar2X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height )	
+				begin 
+					collision <= 1'b1 ;
+				end			
+		
+		
+		//////////////////////////
+		if(BallX  >= policecar3X && BallX < policecar3X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end	
+				
+		if(BallX + 16 >= policecar3X && BallX + 16 < policecar3X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end	
+			
+		if(BallX >= policecar3X && BallX < policecar3X + policecar_width && BallY + 16 >= policecarY && BallY  + 16 < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end		
+			
+		if(BallX + 16 >= policecar3X && BallX + 16 < policecar3X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end	
+		
+		////////////////////////
+		if(BallX  >= policecar4X && BallX < policecar4X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end	
+		
+		if(BallX + 16 >= policecar4X && BallX + 16 < policecar4X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end	
+			
+		if(BallX >= policecar4X && BallX < policecar4X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end	
+		
+		if(BallX + 16 >= policecar4X && BallX + 16 < policecar4X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end		
+		
+		//////////////////////////////
+		if(BallX >= policecar5X && BallX < policecar5X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end
+		
+		if(BallX + 16 >= policecar5X && BallX + 16 < policecar5X + policecar_width && BallY >= policecarY && BallY < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end			
+		
+		if(BallX >= policecar5X && BallX < policecar5X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end
+				
+		if(BallX + 16 >= policecar5X && BallX + 16 < policecar5X + policecar_width && BallY + 16 >= policecarY && BallY + 16 < policecarY + policecar_height  )	
+				begin 
+					collision <= 1'b1 ;
+				end		
+		///////////////////////////////////// TRUCK /////////////////////////////////////////////////////////////////	
+	
+		if(BallX >= truck1X && BallX < truck1X + truck_width && BallY >= truckY && BallY < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+		if(BallX  + 16 >= truck1X && BallX  + 16 < truck1X + truck_width && BallY >= truckY && BallY < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+		
+		if(BallX  >= truck1X && BallX < truck1X + truck_width && BallY  + 16 >= truckY && BallY  + 16 < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+		
+		if(BallX + 16 >= truck1X && BallX  + 16 < truck1X + truck_width && BallY  + 16 >= truckY && BallY  + 16 < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end			
+		//////////////////////	
+		if(BallX  >= truck2X && BallX < truck2X + truck_width && BallY >= truckY && BallY < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end			
+				
+		if(BallX  + 16 >= truck2X && BallX  + 16 < truck2X + truck_width && BallY >= truckY && BallY < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end			
+		
+		if(BallX >= truck2X && BallX < truck2X + truck_width && BallY  + 16 >= truckY && BallY + 16< truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+		if(BallX  + 16 >= truck2X && BallX  + 16 < truck2X + truck_width && BallY  + 16 >= truckY && BallY  + 16 < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end		
+				
+		//////////////////////////
+		if(BallX >= truck3X && BallX < truck3X + truck_width && BallY >= truckY && BallY < truckY + truck_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+	
+		if(BallX  + 16 >= truck3X && BallX  + 16 < truck3X + truck_width && BallY >= truckY && BallY < truckY + truck_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+		if(BallX >= truck3X && BallX < truck3X + truck_width && BallY  + 16 >= truckY && BallY  + 16 < truckY + truck_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+		if(BallX  + 16 >= truck3X && BallX  + 16 < truck3X + truck_width && BallY  + 16 >= truckY && BallY  + 16 < truckY + truck_height   )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+		//////////////////////////////////
+		if(BallX >= truck4X && BallX < truck4X + truck_width && BallY >= truckY && BallY < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end		
+		
+		if(BallX + 16 >= truck4X && BallX + 16 < truck4X + truck_width && BallY >= truckY && BallY < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+		
+		if(BallX >= truck4X && BallX < truck4X + truck_width && BallY + 16 >= truckY && BallY + 16 < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+		
+		if(BallX + 16 >= truck4X && BallX + 16 < truck4X + truck_width && BallY + 16 >= truckY && BallY + 16 < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end	
+		
+		////////////////////////////////
+		if(BallX >= truck5X && BallX < truck5X + truck_width && BallY >= truckY && BallY < truckY + truck_height  )	
 				begin 
 					collision <= 1'b1 ;	
 				end						
-
+		
+		if(BallX + 16 >= truck5X && BallX + 16 < truck5X + truck_width && BallY >= truckY && BallY < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+		
+		if(BallX >= truck5X && BallX < truck5X + truck_width && BallY + 16 >= truckY && BallY + 16 < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end
+		
+		if(BallX + 16 >= truck5X && BallX + 16 < truck5X + truck_width && BallY + 16 >= truckY && BallY + 16 < truckY + truck_height  )	
+				begin 
+					collision <= 1'b1 ;	
+				end		
+				
 		/////////////////////////////////  GATORS /////////////////////////////////////////////////////////////////////////////		
 
-		else if( BallX >= row1gator &&  BallX < row1gator + gator_width && BallY >= row1Y && BallY < row1Y + gator_height  && gator_font[BallY-row1Y][BallX-row1gator] != 6'b000000  )	
+		if(BallX >= row1gator && BallX < row1gator + gator_width && BallY >= row1Y && BallY < row1Y + gator_height    )	
 			begin 
 				collision <= 1'b1 ;	
-			end			
-
-		else if( BallX >= row3gator &&  BallX < row3gator + gator_width && BallY >= row3Y && BallY < row3Y + gator_height  && gator_font[BallY-row3Y][BallX-row3gator] != 6'b000000  )	
+			end
+		
+		if(BallX + 16 >= row1gator && BallX + 16 < row1gator + gator_width && BallY >= row1Y && BallY < row1Y + gator_height    )	
+			begin 
+				collision <= 1'b1 ;	
+			end		
+		
+		if(BallX >= row1gator && BallX < row1gator + gator_width && BallY + 16 >= row1Y && BallY  + 16< row1Y + gator_height    )	
+			begin 
+				collision <= 1'b1 ;	
+			end
+		
+		if(BallX + 16 >= row1gator && BallX + 16 < row1gator + gator_width && BallY + 16 >= row1Y && BallY + 16 < row1Y + gator_height    )	
+			begin 
+				collision <= 1'b1 ;	
+			end
+			
+			
+		///////////////////////		
+		if(BallX >= row3gator && BallX < row3gator + gator_width && BallY >= row3Y && BallY < row3Y + gator_height  )	
 			begin 
 				collision <= 1'b1 ;		
-			end
-
-		else
-			begin 
-				collision <= 1'b0 ;
 			end 
-end
+
+		if(BallX + 16 >= row3gator && BallX + 16 < row3gator + gator_width && BallY >= row3Y && BallY < row3Y + gator_height  )	
+			begin 
+				collision <= 1'b1 ;		
+			end 	
+		
+		if(BallX >= row3gator && BallX < row3gator + gator_width && BallY  + 16>= row3Y && BallY + 16 < row3Y + gator_height  )	
+			begin 
+				collision <= 1'b1 ;		
+			end 	
+		
+		if(BallX + 16 >= row3gator && BallX + 16 < row3gator + gator_width && BallY + 16 >= row3Y && BallY + 16 < row3Y + gator_height  )	
+			begin 
+				collision <= 1'b1 ;		
+			end 
+		
+	
+end 
 
 
 //#########################################################################################
@@ -451,184 +894,1040 @@ end
 
 always_ff@(posedge Clk)
 begin
+		
+		savage <= 1'b0 ;
+		
 		//*********** ROW1 DRAW *********************** 
-		if( BallX >= row1longlog &&  BallX < row1longlog + longlog_width && BallY >= row1Y && BallY < row1Y + longlog_height  && longlog_font[BallY-row1Y][BallX-row1longlog] != 6'b000000  )	
+		if(BallX >= row1longlog &&  BallX < row1longlog + longlog_width && BallY >= row1Y && BallY < row1Y + longlog_height   )	
 			begin 
 				in_water <= 1'b0 ;
 				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+		if(BallX + 16 >= row1longlog &&  BallX + 16 < row1longlog + longlog_width && BallY >= row1Y && BallY < row1Y + longlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		if(BallX >= row1longlog &&  BallX < row1longlog + longlog_width && BallY + 16 >= row1Y && BallY + 16 < row1Y + longlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		if(BallX + 16 >= row1longlog &&  BallX+ 16 < row1longlog + longlog_width && BallY + 16 >= row1Y && BallY + 16 < row1Y + longlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		
+		////////////////////////////////////////////////////////
+		else if( BallX >= row1mediumlog &&  BallX < row1mediumlog + mediumlog_width && BallY >= row1Y && BallY < row1Y + mediumlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+
+		else if( BallX + 16 >= row1mediumlog &&  BallX + 16 < row1mediumlog + mediumlog_width && BallY >= row1Y && BallY < row1Y + mediumlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+	   	else if( BallX >= row1mediumlog &&  BallX < row1mediumlog + mediumlog_width && BallY + 16 >= row1Y && BallY+ 16 < row1Y + mediumlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+	   	else if( BallX + 16 >= row1mediumlog &&  BallX + 16 < row1mediumlog + mediumlog_width && BallY + 16 >= row1Y && BallY+ 16 < row1Y + mediumlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end	
 		
 
-		else if( BallX >= row1mediumlog &&  BallX < row1mediumlog + mediumlog_width && BallY >= row1Y && BallY < row1Y + mediumlog_height  && mediumlog_font[BallY-row1Y][BallX-row1mediumlog] != 6'b000000  )	
+		///////////////////		
+		else if( BallX >= row1shortlog &&  BallX < row1shortlog + shortlog_width && BallY >= row1Y && BallY < row1Y + shortlog_height    )	
 			begin 
 				in_water <= 1'b0 ;
 				shift <= 3'b001 ;
-			end	
-
-		else if( BallX >= row1shortlog &&  BallX < row1shortlog + shortlog_width && BallY >= row1Y && BallY < row1Y + shortlog_height  && shortlog_font[BallY-row1Y][BallX-row1shortlog] != 6'b000000  )	
-			begin 
-				in_water <= 1'b0 ;
-				shift <= 3'b001 ;
+					vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end		
 
-		else if( BallX >= row1twoshell &&  BallX < row1twoshell + twoshell_width && BallY >= row1Y && BallY < row1Y + twoshell_height  && Twoshell_font[BallY-row1Y][BallX-row1twoshell] != 6'b000000  )	
+		else if( BallX + 16 >= row1shortlog &&  BallX + 16  < row1shortlog + shortlog_width && BallY >= row1Y && BallY < row1Y + shortlog_height    )	
 			begin 
 				in_water <= 1'b0 ;
 				shift <= 3'b001 ;
+					vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end		
+	
+		else if( BallX >= row1shortlog &&  BallX < row1shortlog + shortlog_width && BallY + 16  >= row1Y && BallY + 16 < row1Y + shortlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+					vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end		
+	
+		else if( BallX + 16  >= row1shortlog &&  BallX + 16  < row1shortlog + shortlog_width && BallY + 16  >= row1Y && BallY + 16  < row1Y + shortlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+					vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end		
+	
+			
+			
+		////////////////////////		
+		else if( BallX  >= row1twoshell &&  BallX < row1twoshell + twoshell_width && BallY >= row1Y && BallY < row1Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
 		
-		else if( BallX >= row1threeshell &&  BallX < row1threeshell + threeshell_width && BallY >= row1Y && BallY < row1Y + threeshell_height  && Threeshell_font[BallY-row1Y][BallX-row1threeshell] != 6'b000000  )	
+		
+		else if( BallX + 16  >= row1twoshell &&  BallX + 16  < row1twoshell + twoshell_width && BallY >= row1Y && BallY < row1Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		else if( BallX >= row1twoshell &&  BallX < row1twoshell + twoshell_width && BallY + 16  >= row1Y && BallY + 16  < row1Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		else if( BallX + 16  >= row1twoshell &&  BallX + 16  < row1twoshell + twoshell_width && BallY + 16 >= row1Y && BallY + 16  < row1Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		///////////////////////////
+		else if( BallX  >= row1threeshell &&  BallX < row1threeshell + threeshell_width && BallY >= row1Y && BallY < row1Y + threeshell_height    )	
 			begin 
 				in_water <= 1'b0 ;
 				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
 
+			
+			else if( BallX + 16  >= row1threeshell &&  BallX + 16  < row1threeshell + threeshell_width && BallY >= row1Y && BallY < row1Y + threeshell_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+	
+			else if( BallX >= row1threeshell &&  BallX < row1threeshell + threeshell_width && BallY + 16 >= row1Y && BallY + 16 < row1Y + threeshell_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+			
+			else if( BallX + 16 >= row1threeshell &&  BallX + 16  < row1threeshell + threeshell_width && BallY + 16  >= row1Y && BallY + 16 < row1Y + threeshell_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+			
+			
+		//////////////////////////////	
 		//*********** ROW2 Ball *********************** 		 
-		else if( BallX >= row2longlog &&  BallX < row2longlog + longlog_width && BallY >= row2Y && BallY < row2Y + longlog_height  && longlog_font[BallY-row2Y][BallX-row2longlog] != 6'b000000  )	
+		else if( BallX  >= row2longlog &&  BallX < row2longlog + longlog_width && BallY >= row2Y && BallY < row2Y + longlog_height    )	
 			begin 
 				in_water <= 1'b0 ;
 				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
 			end	
 		
-
-		else if( BallX >= row2mediumlog &&  BallX < row2mediumlog + mediumlog_width && BallY >= row2Y && BallY < row2Y + mediumlog_height  && mediumlog_font[BallY-row2Y][BallX-row2mediumlog] != 6'b000000  )	
-			begin 
-				in_water <= 1'b0 ;
-				shift <= 3'b010 ;
-			end	
-
-		else if( BallX >= row2shortlog &&  BallX < row2shortlog + shortlog_width && BallY >= row2Y && BallY < row2Y + shortlog_height  && shortlog_font[BallY-row2Y][BallX-row2shortlog] != 6'b000000  )	
+		
+				else if( BallX + 16 >= row2longlog &&  BallX + 16 < row2longlog + longlog_width && BallY >= row2Y && BallY < row2Y + longlog_height    )	
 			begin 
 				in_water <= 1'b0 ;
 				shift <= 3'b010 ;	
-			end		
-
-		else if( BallX >= row2twoshell &&  BallX < row2twoshell + twoshell_width && BallY >= row2Y && BallY < row2Y + twoshell_height  && Twoshell_font[BallY-row2Y][BallX-row2twoshell] != 6'b000000  )	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		
+				else if( BallX >= row2longlog &&  BallX < row2longlog + longlog_width && BallY + 16 >= row2Y && BallY + 16 < row2Y + longlog_height    )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b010 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		
+				else if( BallX + 16 >= row2longlog &&  BallX + 16 < row2longlog + longlog_width && BallY + 16 >= row2Y && BallY + 16 < row2Y + longlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		
+		
+		
+		
+		
+		
+		/////////////////////////////
+		else if( BallX >= row2longlog &&  BallX < row2longlog + longlog_width && BallY >= row2Y && BallY < row2Y + longlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		
+		
+				else if( BallX + 16 >= row2longlog &&  BallX + 16 < row2longlog + longlog_width && BallY >= row2Y && BallY < row2Y + longlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		
+				else if( BallX >= row2longlog &&  BallX < row2longlog + longlog_width && BallY + 16 >= row2Y && BallY + 16 < row2Y + longlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		
+				else if( BallX + 16 >= row2longlog &&  BallX + 16 < row2longlog + longlog_width && BallY + 16 >= row2Y && BallY + 16 < row2Y + longlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		
+			
+			
+			
+			
+			
+		///////////////////////////////	
+		else if( BallX >= row2shortlog &&  BallX < row2shortlog + shortlog_width && BallY >= row2Y && BallY < row2Y + shortlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end		
+			
+			
+			
+			else if( BallX + 16 >= row2shortlog &&  BallX + 16 < row2shortlog + shortlog_width && BallY >= row2Y && BallY < row2Y + shortlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end		
+			
+				
+			else if( BallX >= row2shortlog &&  BallX < row2shortlog + shortlog_width && BallY + 16 >= row2Y && BallY + 16 < row2Y + shortlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+					
+			else if( BallX  + 16 >= row2shortlog &&  BallX + 16 < row2shortlog + shortlog_width && BallY + 16 >= row2Y && BallY + 16 < row2Y + shortlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+			
+			
+		///////////////////////////////
+		else if( BallX >= row2twoshell &&  BallX < row2twoshell + twoshell_width && BallY >= row2Y && BallY < row2Y + twoshell_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
 		
-		else if( BallX >= row2threeshell &&  BallX < row2threeshell + threeshell_width && BallY >= row2Y && BallY < row2Y + threeshell_height  && Threeshell_font[BallY-row2Y][BallX-row2threeshell] != 6'b000000  )	
+		
+		else if( BallX + 16  >= row2twoshell &&  BallX  + 16  < row2twoshell + twoshell_width && BallY >= row2Y && BallY < row2Y + twoshell_height  )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b010 ;
+				shift <= 3'b010 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		else if( BallX >= row2twoshell &&  BallX < row2twoshell + twoshell_width && BallY  + 16  >= row2Y && BallY + 16  < row2Y + twoshell_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		else if( BallX  + 16  >= row2twoshell &&  BallX  + 16  < row2twoshell + twoshell_width && BallY  + 16  >= row2Y && BallY  + 16  < row2Y + twoshell_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		/////////////////////////////
+		else if( BallX  >= row2threeshell &&  BallX < row2threeshell + threeshell_width && BallY >= row2Y && BallY < row2Y + threeshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
  
+      	else if( BallX + 16  >= row2threeshell &&  BallX + 16 < row2threeshell + threeshell_width && BallY >= row2Y && BallY < row2Y + threeshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+ 
+ 
+ 	else if( BallX  >= row2threeshell &&  BallX < row2threeshell + threeshell_width && BallY + 16 >= row2Y && BallY + 16 < row2Y + threeshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+ 
+ 
+ 	else if( BallX + 16  >= row2threeshell &&  BallX + 16 < row2threeshell + threeshell_width && BallY + 16 >= row2Y && BallY + 16 < row2Y + threeshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+ 
+ 
+ 
+ 
+ 
+ 
+ 
 		//*********** ROW3 Ball *********************** 
-		
-		else if( BallX >= row3longlog &&  BallX < row3longlog + longlog_width && BallY >= row3Y && BallY < row3Y + longlog_height  && longlog_font[BallY-row3Y][BallX-row3longlog] != 6'b000000  )	
+		/////////////////////////////
+		else if( BallX >= row3longlog &&  BallX < row3longlog + longlog_width && BallY >= row3Y && BallY < row3Y + longlog_height  )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b001 ;	
+				shift <= 3'b001 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end	
 		
-
-		else if( BallX >= row3mediumlog &&  BallX < row3mediumlog + mediumlog_width && BallY >= row3Y && BallY < row3Y + mediumlog_height  && mediumlog_font[BallY-row3Y][BallX-row3mediumlog] != 6'b000000  )	
+			else if( BallX+ 16 >= row3longlog &&  BallX+ 16 < row3longlog + longlog_width && BallY >= row3Y && BallY < row3Y + longlog_height  )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b001 ;	
+				shift <= 3'b001 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+			else if( BallX >= row3longlog &&  BallX < row3longlog + longlog_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + longlog_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+			else if( BallX+ 16 >= row3longlog &&  BallX+ 16 < row3longlog + longlog_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + longlog_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+		
+		/////////////////////////////
+		else if( BallX >= row3mediumlog &&  BallX < row3mediumlog + mediumlog_width && BallY >= row3Y && BallY < row3Y + mediumlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
 			end	
 
-		else if( BallX >= row3shortlog &&  BallX < row3shortlog + shortlog_width && BallY >= row3Y && BallY < row3Y + shortlog_height  && shortlog_font[BallY-row3Y][BallX-row3shortlog] != 6'b000000  )	
+				else if( BallX+ 16 >= row3mediumlog &&  BallX+ 16 < row3mediumlog + mediumlog_width && BallY >= row3Y && BallY < row3Y + mediumlog_height    )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b001 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		else if( BallX >= row3mediumlog &&  BallX < row3mediumlog + mediumlog_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + mediumlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+		else if( BallX+ 16 >= row3mediumlog &&  BallX+ 16 < row3mediumlog + mediumlog_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + mediumlog_height    )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;	
+			end	
+	
+			
+		/////////////////////////////	
+		else if( BallX >= row3shortlog &&  BallX < row3shortlog + shortlog_width && BallY >= row3Y && BallY < row3Y + shortlog_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end		
 
-		else if( BallX >= row3twoshell &&  BallX < row3twoshell + twoshell_width && BallY >= row3Y && BallY < row3Y + twoshell_height  && Twoshell_font[BallY-row3Y][BallX-row3twoshell] != 6'b000000  )	
+		
+		else if( BallX + 16 >= row3shortlog &&  BallX + 16 < row3shortlog + shortlog_width && BallY >= row3Y && BallY < row3Y + shortlog_height  )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b001 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+	
+		else if( BallX >= row3shortlog &&  BallX < row3shortlog + shortlog_width && BallY + 16 >= row3Y && BallY + 16 < row3Y + shortlog_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
 		
-		else if( BallX >= row3threeshell &&  BallX < row3threeshell + threeshell_width && BallY >= row3Y && BallY < row3Y + threeshell_height  && Threeshell_font[BallY-row3Y][BallX-row3threeshell] != 6'b000000  )	
+		else if( BallX + 16 >= row3shortlog &&  BallX + 16 < row3shortlog + shortlog_width && BallY + 16 >= row3Y && BallY + 16 < row3Y + shortlog_height  )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b001 ;	
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end		
+	
+	   /////////////////////////////		
+		else if( BallX >= row3twoshell &&  BallX < row3twoshell + twoshell_width && BallY >= row3Y && BallY < row3Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
-											
+		
+				else if( BallX+ 16 >= row3twoshell &&  BallX+ 16 < row3twoshell + twoshell_width && BallY >= row3Y && BallY < row3Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+				else if( BallX >= row3twoshell &&  BallX < row3twoshell + twoshell_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+				else if( BallX+ 16 >= row3twoshell &&  BallX+ 16 < row3twoshell + twoshell_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		/////////////////////////////
+		else if( BallX >= row3threeshell &&  BallX < row3threeshell + threeshell_width && BallY >= row3Y && BallY < row3Y + threeshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end 
+		
+			else if( BallX+ 16 >= row3threeshell &&  BallX + 16< row3threeshell + threeshell_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + threeshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end 
+			
+		else if( BallX + 16>= row3threeshell &&  BallX+ 16 < row3threeshell + threeshell_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + threeshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end 
+		
+		else if( BallX >= row3threeshell &&  BallX < row3threeshell + threeshell_width && BallY+ 16 >= row3Y && BallY+ 16 < row3Y + threeshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b001 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end 
+							
 		
 		//*********** ROW4 DRAW *********************** 		 
-			
-		else if( BallX >= row4longlog &&  BallX < row4longlog + longlog_width && BallY >= row4Y && BallY < row4Y + longlog_height  && longlog_font[BallY-row4Y][BallX-row4longlog] != 6'b000000  )	
+		/////////////////////////////	
+		else if( BallX >= row4longlog &&  BallX < row4longlog + longlog_width && BallY >= row4Y && BallY < row4Y + longlog_height   )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b010 ;	
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end	
 		
 
-		else if( BallX >= row4mediumlog &&  BallX < row4mediumlog + mediumlog_width && BallY >= row4Y && BallY < row4Y + mediumlog_height  && mediumlog_font[BallY-row4Y][BallX-row4mediumlog] != 6'b000000  )	
+				else if( BallX+ 16 >= row4longlog &&  BallX+ 16 < row4longlog + longlog_width && BallY >= row4Y && BallY < row4Y + longlog_height   )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b010 ;	
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+				else if( BallX >= row4longlog &&  BallX < row4longlog + longlog_width && BallY + 16>= row4Y && BallY+ 16 < row4Y + longlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+				else if( BallX + 16>= row4longlog &&  BallX+ 16 < row4longlog + longlog_width && BallY+ 16 >= row4Y && BallY + 16 < row4Y + longlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+		
+		/////////////////////////////
+		else if( BallX >= row4mediumlog &&  BallX < row4mediumlog + mediumlog_width && BallY >= row4Y && BallY < row4Y + mediumlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+				else if( BallX + 16>= row4mediumlog &&  BallX + 16 < row4mediumlog + mediumlog_width && BallY >= row4Y && BallY < row4Y + mediumlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		else if( BallX >= row4mediumlog &&  BallX < row4mediumlog + mediumlog_width && BallY + 16 >= row4Y && BallY + 16 < row4Y + mediumlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		else if( BallX + 16 >= row4mediumlog &&  BallX+ 16 < row4mediumlog + mediumlog_width && BallY + 16 >= row4Y && BallY + 16 < row4Y + mediumlog_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end	
 
-		else if( BallX >= row4shortlog &&  BallX < row4shortlog + shortlog_width && BallY >= row4Y && BallY < row4Y + shortlog_height  && shortlog_font[BallY-row4Y][BallX-row4shortlog] != 6'b000000  )	
+			
+		/////////////////////////////		
+		else if( BallX >= row4shortlog &&  BallX < row4shortlog + shortlog_width && BallY >= row4Y && BallY < row4Y + shortlog_height  )	
 			begin 
 				in_water <= 1'b0 ;
-				shift <= 3'b010 ;	
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end		
 
-		else if( BallX >= row4twoshell &&  BallX < row4twoshell + twoshell_width && BallY >= row4Y && BallY < row4Y + twoshell_height  && Twoshell_font[BallY-row4Y][BallX-row4twoshell] != 6'b000000  )	
+		else if( BallX + 16  >= row4shortlog &&  BallX + 16  < row4shortlog + shortlog_width && BallY >= row4Y && BallY < row4Y + shortlog_height  )	
 			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+		
+		else if( BallX >= row4shortlog &&  BallX < row4shortlog + shortlog_width && BallY + 16  >= row4Y && BallY + 16  < row4Y + shortlog_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+	
+	
+		else if( BallX + 16  >= row4shortlog &&  BallX + 16 < row4shortlog + shortlog_width && BallY + 16  >= row4Y && BallY + 16 < row4Y + shortlog_height  )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end	
+	
+	
+	
+		/////////////////////////////		
+		else if( BallX >= row4twoshell &&  BallX < row4twoshell + twoshell_width && BallY >= row4Y && BallY < row4Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;		
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+			else if( BallX+ 16 >= row4twoshell &&  BallX + 16< row4twoshell + twoshell_width && BallY >= row4Y && BallY < row4Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;		
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+			else if( BallX >= row4twoshell &&  BallX < row4twoshell + twoshell_width && BallY+ 16 >= row4Y && BallY + 16 < row4Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;		
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+			else if( BallX+ 16 >= row4twoshell &&  BallX+ 16 < row4twoshell + twoshell_width && BallY+ 16 >= row4Y && BallY + 16 < row4Y + twoshell_height   )	
+			begin 
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;		
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		/////////////////////////////
+		else if( BallX >= row4threeshell &&  BallX < row4threeshell + threeshell_width && BallY >= row4Y && BallY < row4Y + threeshell_height ) 
+			begin 	
 				in_water <= 1'b0 ;
 				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+			else if( BallX+ 16 >= row4threeshell &&  BallX  + 16 < row4threeshell + threeshell_width && BallY >= row4Y && BallY < row4Y + threeshell_height ) 
+			begin 	
+				in_water <= 1'b0 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
 		
-		else if( BallX >= row4threeshell &&  BallX < row4threeshell + threeshell_width && BallY >= row4Y && BallY < row4Y + threeshell_height  && Threeshell_font[BallY-row4Y][BallX-row4threeshell] != 6'b000000  )	
-			begin 
+			else if( BallX >= row4threeshell &&  BallX < row4threeshell + threeshell_width && BallY + 16 >= row4Y && BallY + 16 < row4Y + threeshell_height ) 
+			begin 	
 				in_water <= 1'b0 ;
-				shift <= 3'b010 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
 		
-		else if ( DrawY >= 125 && DrawY <= 155 && ( DrawX >= 60 ) && ( DrawX <= 100 ) )
-			begin 
-				vaders_count <= vaders_count + 1 ; 
-				vader1 <= 1 ; 
+			else if( BallX + 16 >= row4threeshell &&  BallX + 16 < row4threeshell + threeshell_width && BallY  + 16 >= row4Y && BallY + 16 < row4Y + threeshell_height ) 
+			begin 	
 				in_water <= 1'b0 ;
-				shift <= 3'b000 ;
+				shift <= 3'b010 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end
+		
+		
+		
+		
+		/////////////////////////////
+		else if ( BallY >= 125 && BallY <= 155 && ( BallX >= 60 ) && ( BallX <= 100 ) )
+			begin 
+				//vaders_count <= vaders_count + 1 ; 
+				vader1 <= 1'b1 ; 
+				savage <= 1'b1 ;
+				in_water <= 1'b0 ;
+				shift <= 3'b000 ;	
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 	
 			end 	
-		else if ( DrawY >= 125 && DrawY <= 155 && ( DrawX >= 180 ) && ( DrawX <= 220 ) )
+		
+		
+		else if ( BallY >= 125 && BallY <= 155 && ( BallX >= 180 ) && ( BallX <= 220 ) )
 			begin 
-				vaders_count <= vaders_count + 1 ; 
-				vader2 <= 1 ; 
+				//vaders_count <= vaders_count + 1 ; 
+				vader2 <= 1'b1 ;
+				savage <= 1'b1 ;	
 				in_water <= 1'b0 ;
-				shift <= 3'b000 ;
+				shift <= 3'b000 ; 	
+				vader1 <= vader1 ; 
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
+			end 
+			
+		else if ( BallY >= 125 && BallY <= 155 && ( BallX >= 300 ) && ( BallX <= 340 ) )
+			begin 
+				//vaders_count <= vaders_count + 1 ; 
+				vader3 <= 1'b1 ;
+				savage <= 1'b1 ;	
+				in_water <= 1'b0 ;
+				shift <= 3'b000 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end 
 
-		else if ( DrawY >= 125 && DrawY <= 155 && ( DrawX >= 300 ) && ( DrawX <= 340 ) )
+		else if ( BallY >= 125 && BallY <= 155 && ( BallX >= 420 ) && ( BallX <= 460 ) )
 			begin 
-				vaders_count <= vaders_count + 1 ; 
-				vader3 <= 1 ; 
+				//vaders_count <= vaders_count + 1 ; 
+				vader4 <= 1'b1 ; 
+				savage <= 1'b1 ;
 				in_water <= 1'b0 ;
-				shift <= 3'b000 ;
+				shift <= 3'b000 ; 	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader5 <= vader5 ;
 			end 
-
-		else if ( DrawY >= 125 && DrawY <= 155 && ( DrawX >= 420 ) && ( DrawX <= 460 ) )
+		else if ( BallY >= 125 && BallY <= 155 && ( BallX >= 540 ) && ( BallX <= 580 ) )
 			begin 
-				vaders_count <= vaders_count + 1 ; 
-				vader4 <= 1 ; 
+				//vaders_count <= vaders_count + 1 ; 
+				vader5 <= 1'b1 ; 
+				savage <= 1'b1 ;
 				in_water <= 1'b0 ;
-				shift <= 3'b000 ;
-			end 
-		else if ( DrawY >= 125 && DrawY <= 155 && ( DrawX >= 540 ) && ( DrawX <= 580 ) )
-			begin 
-				vaders_count <= vaders_count + 1 ; 
-				vader5 <= 1 ; 
-				in_water <= 1'b0 ;
-				shift <= 3'b000 ;
+				shift <= 3'b000 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
 			end 			
 		else if ( BallY < 240 )	
 			begin 
 				in_water <= 1'b1 ;
-				shift <= 3'b000 ;
+				shift <= 3'b000 ; 
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end
 		else 
 			begin 
 				in_water <= 1'b0 ;
 				shift <= 3'b000 ;	
+				vader1 <= vader1 ; 
+				vader2 <= vader2 ;
+				vader3 <= vader3 ;
+				vader4 <= vader4 ;
+				vader5 <= vader5 ;
 			end 
 
 
@@ -642,16 +1941,48 @@ end
 always_comb
 	begin
 		
-		// decrease time 
-   
+		// if (wait)
+		// else if (success)
+		if (halt == 1'b1 ) 
+		begin 
+			if  ( DrawX >= startScreenX &&  DrawX < startScreenX + startScreen_width  && DrawY >= startScreenY && DrawY < startScreenY + startScreen_height && startScreen_font[DrawY-startScreenY][DrawX-startScreenX] != 6'b000000	)
+				begin 
+					colorcode = startScreen_font[DrawY-startScreenY][DrawX-startScreenX] ;
+				end 
+					
+			else 
+				begin 
+					colorcode = 6'b000001 ; 
+				end 
+		end 
+		
+		
+		else if (game_over == 1'b1 || lives == 3'b000 )
+		begin 
+			if  ( DrawX >= endScreenX &&  DrawX < endScreenX + endScreen_width  && DrawY >= endScreenY && DrawY < endScreenY + endScreen_height && endScreen_font[DrawY-endScreenY][DrawX-endScreenX] != 6'b000000	)
+				begin 
+					colorcode = endScreen_font[DrawY-endScreenY][DrawX-endScreenX] ;
+				end 
+			else 
+				begin 
+					colorcode = 6'b000001 ; 
+				end 
+		end
+		
+		
+		
 		
 		//*********** draw the frog  ****************** 
-		if( DrawX >= BallX &&  DrawX < BallX + frog_width  && DrawY >= BallY && DrawY < BallY + frog_height && frog_font[DrawY-BallY][DrawX-BallX] != 6'b000000  )	
+		
+		else if (skull == 1'b1 &&  DrawX >= BallX && DrawX < BallX + skull_width  && DrawY >= BallY && DrawY < BallY + skull_height && skull_font[DrawY-BallY][DrawX-BallX] != 6'b000000  )
+				begin 
+					colorcode = skull_font[DrawY-BallY][DrawX-BallX]	;	
+				end
+
+		else if( DrawX >= BallX &&  DrawX < BallX + frog_width  && DrawY >= BallY && DrawY < BallY + frog_height && frog_font[DrawY-BallY][DrawX-BallX] != 6'b000000 && skull == 1'b0   )	
 				begin 
 					colorcode = frog_font[DrawY-BallY][DrawX-BallX]	;	
 				end
-		
-	  	
 
 		//*********** draw the firetruck  ****************** 
 		else if( DrawX >= firetruck1X &&  DrawX < firetruck1X + firetruck_width && DrawY >= firetruckY && DrawY < firetruckY + firetruck_height && firetruck_font[DrawY-firetruckY][DrawX-firetruck1X] != 6'b000000 )	
@@ -1017,27 +2348,27 @@ always_comb
 				if (DrawY >= 125)
 						// ------------
 						if ( (( DrawX >= 60 ) && ( DrawX <= 100 )) ||  ( (DrawX >= 180) && (DrawX <=220)) || ( (DrawX >= 300) && (DrawX <=340))  ||  ( (DrawX >= 420) && (DrawX <=460))  ||  ( (DrawX >= 540) && (DrawX <=580))	) 
-								 if ( DrawX >= vader1X && DrawX <  vader1X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader1X] != 6'b000000 && vader1 == 1 ) 
+								 if ( DrawX >= vader1X && DrawX <  vader1X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader1X] != 6'b000000 && vader1 == 1'b1 ) 
 								 begin 	
 										colorcode = vader_font[DrawY-vaderY][DrawX-vader1X] ;			
 								 end  
 
-								 else if ( DrawX >= vader2X && DrawX <  vader2X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader2X] != 6'b000000 && vader2 == 1 ) 
+								 else if ( DrawX >= vader2X && DrawX <  vader2X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader2X] != 6'b000000 && vader2 == 1'b1 ) 
 								 begin 	
 										colorcode = vader_font[DrawY-vaderY][DrawX-vader2X] ;			
 								 end 
 								 
-								 else if ( DrawX >= vader3X && DrawX <  vader3X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader3X] != 6'b000000 && vader3 == 1 ) 
+								 else if ( DrawX >= vader3X && DrawX <  vader3X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader3X] != 6'b000000 && vader3 == 1'b1 ) 
 								 begin 	
 										colorcode = vader_font[DrawY-vaderY][DrawX-vader3X] ;			
 								 end 
 								 
-								 else if ( DrawX >= vader4X && DrawX <  vader4X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader4X] != 6'b000000 && vader4 == 1 ) 
+								 else if ( DrawX >= vader4X && DrawX <  vader4X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader4X] != 6'b000000 && vader4 == 1'b1 ) 
 								 begin 	
 										colorcode = vader_font[DrawY-vaderY][DrawX-vader4X] ;			
 								 end 
 								 
-								 else if ( DrawX >= vader5X && DrawX <  vader5X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader5X] != 6'b000000 && vader5 == 1 ) 
+								 else if ( DrawX >= vader5X && DrawX <  vader5X + vader_width && DrawY >= vaderY && DrawY < vaderY + vader_height && vader_font[DrawY-vaderY][DrawX-vader5X] != 6'b000000 && vader5 == 1'b1 ) 
 								 begin 	
 										colorcode = vader_font[DrawY-vaderY][DrawX-vader5X] ;			
 								 end 
@@ -1088,15 +2419,21 @@ always_ff@(posedge clk_1Hz)
 
 	if( time_width == 0 ) 
 		begin 
-			time_width <= 180 ;
-			time_up <= 1'b1 ; 
+			//time_width <= 180 ;
+			//time_up <= 1'b1 ; 
+			game_over = 1'b1 ;
 		end  	
-	else 
+	else if (timer_stop == 1'b0 )
 		begin 
 			time_width <= time_width - 1 ;
-			time_up <= 1'b0 ; 
+			//time_up <= 1'b0 ; 
 		end 	
   	
+	else 
+		begin 
+			time_width <= time_width;
+			//time_up <= 1'b0 ; 
+		end 	
    end 
 
 
@@ -1410,7 +2747,7 @@ always_ff@(posedge clk_4Hz)
 	row4mediumlog <= row4mediumlog + 1 ;
 	row4twoshell <= row4twoshell + 1 ;
 	row4threeshell <= row4threeshell + 1 ;
-		
+	
    
 	if( row4longlog == 640 ) 
 		begin 
